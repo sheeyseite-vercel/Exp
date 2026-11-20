@@ -117,15 +117,15 @@ export default function Details() {
         </div>
       )}
 
-      <section className={`hero tone-${tone}`}>
+      <section className={`hero card accent-${tone}`}>
         <div className="hero-top">
-          <Thumb product={product} size={56} />
+          <Thumb product={product} size={84} />
           <span className="hero-name">
             <strong>{product.name}</strong>
-            <span className="chip chip-white">{categoryLabel(product.category)}</span>
+            <span className="chip chip-cat">{categoryLabel(product.category)}</span>
           </span>
         </div>
-        <div className="hero-days">
+        <div className={`hero-count tone-${tone}`}>
           <span className="hero-num">{Math.abs(days)}</span>
           <span className="hero-label">{bigLabel}</span>
         </div>

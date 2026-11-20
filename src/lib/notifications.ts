@@ -40,11 +40,32 @@ export async function sendTestNotification(): Promise<TestResult> {
         title: t('app_name'),
         body: notificationBody(t('test_sample'), 3, addDays(toISO(new Date()), 3), 12),
         channelId: 'expiry',
-        schedule: { at: new Date(Date.now() + 1500), allowWhileIdle: true },
+        // No schedule: the notification is shown immediately.
       },
     ],
   });
   return 'sent';
+}
+
+export type ExactAlarmState = 'granted' | 'denied' | 'unsupported';
+
+/** Android 12+ only delivers reminders on time when the app may use exact alarms. */
+export async function exactAlarmState(): Promise<ExactAlarmState> {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return 'unsupported';
+  try {
+    const result = await LocalNotifications.checkExactNotificationSetting();
+    return result.exact_alarm === 'granted' ? 'granted' : 'denied';
+  } catch {
+    return 'unsupported';
+  }
+}
+
+export async function openExactAlarmSettings(): Promise<void> {
+  try {
+    await LocalNotifications.changeExactNotificationSetting();
+  } catch {
+    /* settings screen unavailable */
+  }
 }
 
 /** Replaces every pending reminder on the device with the current plan. */

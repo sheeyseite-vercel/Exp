@@ -31,8 +31,9 @@ export function Thumb({ product, size = 52 }: { product: Product; size?: number 
 
 export function ProductRow({ product, compact = false }: { product: Product; compact?: boolean }) {
   const days = daysUntil(product.expiry_date);
+  const tone = toneOf(statusOf(days));
   return (
-    <Link to={`/product/${product.id}`} className={compact ? 'row row-compact' : 'row card'}>
+    <Link to={`/product/${product.id}`} className={compact ? 'row row-compact' : `row card accent accent-${tone}`}>
       <Thumb product={product} size={compact ? 42 : 52} />
       <span className="row-main">
         <span className="row-name">{product.name}</span>

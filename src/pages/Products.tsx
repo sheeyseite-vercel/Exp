@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { Empty, ErrorBanner, ProductRow, StatusChip, Thumb } from '../components/ui';
-import { daysUntil, expiryLine } from '../lib/dates';
+import { Empty, ErrorBanner, ProductRow, StatusChip, Thumb, toneOf } from '../components/ui';
+import { daysUntil, expiryLine, statusOf } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
 import { normalizeText, productKey } from '../lib/text';
 import type { Product } from '../lib/types';
@@ -21,7 +21,7 @@ function BatchGroup({ rows }: { rows: Row[] }) {
   const total = rows.reduce((sum, row) => sum + row.product.quantity, 0);
   const first = rows[0];
   return (
-    <div className="card group">
+    <div className={`card group accent accent-${toneOf(statusOf(first.days))}`}>
       <div className="row">
         <Thumb product={first.product} size={52} />
         <span className="row-main">

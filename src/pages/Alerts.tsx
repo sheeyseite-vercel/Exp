@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { ErrorBanner, Switch } from '../components/ui';
 import { addDays, daysPhrase, daysUntil, toISO } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
+import { exactAlarmState, openExactAlarmSettings, type ExactAlarmState } from '../lib/notifications';
 import { notificationBody } from '../lib/planner';
 import { useData } from '../state/DataProvider';
 
@@ -24,6 +26,14 @@ export default function Alerts() {
   const rules = [...new Set(settings.default_remind_days)];
   const extras = rules.filter((d) => !PRESET_DAYS.includes(d)).sort((a, b) => b - a);
   const enabled = settings.notifications_enabled;
+  const [exact, setExact] = useState<ExactAlarmState>('unsupported');
+
+  useEffect(() => {
+    const check = () => void exactAlarmState().then(setExact);
+    check();
+    document.addEventListener('visibilitychange', check);
+    return () => document.removeEventListener('visibilitychange', check);
+  }, []);
 
   function setRules(next: number[]) {
     void updateSettings({ default_remind_days: [...new Set(next)].sort((a, b) => b - a) });
@@ -69,6 +79,15 @@ export default function Alerts() {
       {permission === 'denied' && enabled && (
         <div className="banner banner-peach" role="alert">
           {t('perm_denied')}
+        </div>
+      )}
+
+      {exact === 'denied' && enabled && (
+        <div className="banner banner-peach exact-banner" role="alert">
+          <span>{t('exact_note')}</span>
+          <button type="button" className="btn btn-sm btn-outline" onClick={() => void openExactAlarmSettings()}>
+            {t('exact_btn')}
+          </button>
         </div>
       )}
 
