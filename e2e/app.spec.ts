@@ -143,7 +143,7 @@ test('phone: browse, add manually, details, alerts, profile', async ({ page }) =
   await page.screenshot({ path: `${SHOTS}/05-alerts-phone.png`, fullPage: true });
 
   await page.goto('/#/profile');
-  await expect(page.getByText('amina@example.com')).toBeVisible();
+  await expect(page.getByRole('main').getByText('amina@example.com')).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/06-profile-phone.png` });
 
   await page.goto('/#/scan');
