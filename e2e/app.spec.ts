@@ -144,7 +144,7 @@ test('phone: browse, add manually, details, alerts, profile', async ({ page }) =
 
   // alerts
   await page.goto('/#/alerts');
-  await expect(page.getByRole('heading', { name: 'التنبيهات' })).toBeVisible();
+  await expect(page.getByText('أنت تقرّر متى يصلك التذكير.')).toBeVisible();
   const seven = page.getByRole('button', { name: /قبل 7 أيام/ });
   await expect(seven).toHaveAttribute('aria-pressed', 'true');
   await seven.click();
