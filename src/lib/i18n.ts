@@ -67,7 +67,7 @@ export const WEEKDAYS: Record<Lang, string[]> = {
 };
 
 const ar = {
-  app_name: 'صلاحيتي',
+  app_name: 'Expired',
   loading: 'جارٍ التحميل…',
   cancel: 'إلغاء',
   delete: 'حذف',
@@ -121,7 +121,7 @@ const ar = {
   demo_days: 'يومًا',
   demo_alert: 'تنبيه قبل 7 أيام',
 
-  home_title: 'مرحبًا بك في صلاحيتي',
+  home_title: 'مرحبًا بك في Expired',
   home_text: 'تتبّع تواريخ انتهاء منتجاتك في مكان واحد، وسنذكّرك قبل أن تفسد.',
   home_features: 'ما الذي يقدّمه التطبيق',
   feat_scan_t: 'مسح سريع',
@@ -303,7 +303,7 @@ const ar = {
 type Dict = Record<keyof typeof ar, string>;
 
 const fr: Dict = {
-  app_name: 'Salahiyati',
+  app_name: 'Expired',
   loading: 'Chargement…',
   cancel: 'Annuler',
   delete: 'Supprimer',
@@ -357,7 +357,7 @@ const fr: Dict = {
   demo_days: 'jours',
   demo_alert: 'Alerte 7 jours avant',
 
-  home_title: 'Bienvenue sur Salahiyati',
+  home_title: 'Bienvenue sur Expired',
   home_text: 'Suivez les dates de péremption de vos produits au même endroit, et soyez prévenu avant qu’ils ne se périment.',
   home_features: 'Ce que fait l’application',
   feat_scan_t: 'Scan rapide',
@@ -537,7 +537,7 @@ const fr: Dict = {
 };
 
 const en: Dict = {
-  app_name: 'Salahiyati',
+  app_name: 'Expired',
   loading: 'Loading…',
   cancel: 'Cancel',
   delete: 'Delete',
@@ -591,7 +591,7 @@ const en: Dict = {
   demo_days: 'days',
   demo_alert: 'Alert 7 days before',
 
-  home_title: 'Welcome to Salahiyati',
+  home_title: 'Welcome to Expired',
   home_text: 'Keep every product’s expiry date in one place, and get reminded before it spoils.',
   home_features: 'What the app does',
   feat_scan_t: 'Quick scan',

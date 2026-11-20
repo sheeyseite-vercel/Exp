@@ -73,5 +73,5 @@ jobs:
         run: |
           gh release create "v1.0.${{ github.run_number }}" salahiyati.apk \
             --repo "${{ github.repository }}" \
-            --title "صلاحيتي v1.0.${{ github.run_number }}" \
+            --title "Expired v1.0.${{ github.run_number }}" \
             --notes "APK تجريبي (debug). ثبّته على أندرويد وفعّل التثبيت من مصادر غير معروفة."

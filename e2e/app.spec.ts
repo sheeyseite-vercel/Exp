@@ -115,7 +115,7 @@ test('phone: browse, add manually, details, alerts, profile', async ({ page }) =
   await setup(page, rows);
 
   await page.goto('/');
-  await expect(page.getByText('مرحبًا بك في صلاحيتي')).toBeVisible();
+  await expect(page.getByText('مرحبًا بك في Expired')).toBeVisible();
   await expect(page.getByText('كل دفعة مستقلة')).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/01-home-phone.png`, fullPage: true });
 
@@ -217,7 +217,7 @@ test('tablet: sidebar layout', async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 800 });
   await setup(page, seed());
   await page.goto('/');
-  await expect(page.getByText('مرحبًا بك في صلاحيتي')).toBeVisible();
+  await expect(page.getByText('مرحبًا بك في Expired')).toBeVisible();
   await expect(page.locator('.sidebar')).toBeVisible();
   await expect(page.locator('.bottom-nav')).toBeHidden();
   await page.screenshot({ path: `${SHOTS}/08-home-tablet.png` });
