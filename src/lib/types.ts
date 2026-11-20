@@ -39,7 +39,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   notifications_enabled: true,
-  default_remind_days: [7, 3, 0],
+  default_remind_days: [7, 1, 0],
   custom_days: 14,
   notify_time: '09:00',
   auto_delete_expired: false,

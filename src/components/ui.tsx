@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categoryIcon } from '../lib/categories';
 import { chipLabel, daysUntil, expiryLine, statusOf, type Status } from '../lib/dates';
+import { t } from '../lib/i18n';
 import type { Product } from '../lib/types';
 import { usePhotoUrl } from '../state/usePhotoUrl';
 import { Icon } from './Icon';
@@ -37,7 +38,7 @@ export function ProductRow({ product, compact = false }: { product: Product; com
         <span className="row-name">{product.name}</span>
         <span className="row-sub">
           {expiryLine(product.expiry_date, days)}
-          {compact ? '' : ` · الكمية ${product.quantity}`}
+          {compact ? '' : ` · ${t('row_qty', { n: product.quantity })}`}
         </span>
       </span>
       <StatusChip days={days} />
@@ -79,7 +80,7 @@ export function BackButton({ to }: { to?: string }) {
     <button
       type="button"
       className="round-btn"
-      aria-label="رجوع"
+      aria-label={t('back')}
       onClick={() => (to ? navigate(to) : navigate(-1))}
     >
       <Icon name="chevronRight" size={22} stroke={1.9} />

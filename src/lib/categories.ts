@@ -1,15 +1,10 @@
+import { t, type TKey } from './i18n';
 import type { Category } from './types';
 
-export const CATEGORIES: { id: Category; label: string }[] = [
-  { id: 'dairy', label: 'ألبان' },
-  { id: 'meat', label: 'لحوم' },
-  { id: 'canned', label: 'معلّبات' },
-  { id: 'bakery', label: 'مخبوزات' },
-  { id: 'other', label: 'أخرى' },
-];
+export const CATEGORY_IDS: Category[] = ['dairy', 'meat', 'canned', 'bakery', 'other'];
 
 export function categoryLabel(id: Category): string {
-  return CATEGORIES.find((c) => c.id === id)?.label ?? 'أخرى';
+  return t(`cat_${id}` as TKey);
 }
 
 /** Icon used on a product tile. */

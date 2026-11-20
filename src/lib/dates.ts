@@ -1,20 +1,5 @@
 // Date helpers. Dates are handled as ISO strings (yyyy-mm-dd) in the user's local calendar.
-
-const MONTHS = [
-  'جانفي',
-  'فيفري',
-  'مارس',
-  'أفريل',
-  'ماي',
-  'جوان',
-  'جويلية',
-  'أوت',
-  'سبتمبر',
-  'أكتوبر',
-  'نوفمبر',
-  'ديسمبر',
-];
-const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+import { getLang, MONTHS, t, WEEKDAYS } from './i18n';
 
 export type Status = 'expired' | 'urgent' | 'soon' | 'fresh';
 
@@ -60,39 +45,42 @@ export function statusOf(days: number): Status {
 
 /** Short label shown in a status chip. */
 export function chipLabel(days: number): string {
-  if (days < 0) return 'منتهٍ';
-  if (days === 0) return 'اليوم';
-  if (days === 1) return 'غدًا';
-  if (days === 2) return 'يومان';
-  if (days <= 10) return `${days} أيام`;
-  return `${days} يومًا`;
+  if (days < 0) return t('chip_expired');
+  if (days === 0) return t('chip_today');
+  if (days === 1) return t('chip_tomorrow');
+  if (days === 2) return t('chip_two');
+  return daysPhrase(days);
 }
 
-/** "3 أيام" style count used inside sentences. */
+/** "3 days" style count used inside sentences. */
 export function daysPhrase(n: number): string {
-  if (n === 1) return 'يوم واحد';
-  if (n === 2) return 'يومين';
-  if (n <= 10) return `${n} أيام`;
-  return `${n} يومًا`;
+  if (n === 1) return t('day_one');
+  if (n === 2) return t('day_two');
+  if (n <= 10) return t('days_few', { n });
+  return t('days_many', { n });
 }
 
 export function formatDay(iso: string): string {
   const { m, d } = parseISO(iso);
-  return `${d} ${MONTHS[m - 1]}`;
+  const month = MONTHS[getLang()][m - 1];
+  return getLang() === 'en' ? `${month} ${d}` : `${d} ${month}`;
 }
 
 export function formatFull(iso: string): string {
   const { y } = parseISO(iso);
-  return `${formatDay(iso)} ${y}`;
+  return getLang() === 'en' ? `${formatDay(iso)}, ${y}` : `${formatDay(iso)} ${y}`;
 }
 
 export function formatToday(now: Date = new Date()): string {
-  return `${WEEKDAYS[now.getDay()]} ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+  const lang = getLang();
+  const weekday = WEEKDAYS[lang][now.getDay()];
+  const month = MONTHS[lang][now.getMonth()];
+  return lang === 'en' ? `${weekday}, ${month} ${now.getDate()}` : `${weekday} ${now.getDate()} ${month}`;
 }
 
 /** Secondary line under a product name. */
 export function expiryLine(iso: string, days: number): string {
-  return days < 0 ? `انتهى ${formatDay(iso)}` : `ينتهي ${formatDay(iso)}`;
+  return days < 0 ? t('expiry_ended', { date: formatDay(iso) }) : t('expiry_ends', { date: formatDay(iso) });
 }
 
 /** Share of the shelf life that has already passed (0-100), measured from the day the product was added. */

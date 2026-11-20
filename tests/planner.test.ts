@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeRules, notificationBody, parseTime, planNotifications } from '../src/lib/planner';
+import { notificationBody, parseTime, planNotifications } from '../src/lib/planner';
 import { DEFAULT_SETTINGS, type Product, type Settings } from '../src/lib/types';
 
 const now = new Date(2026, 10, 17, 8, 0);
@@ -26,13 +26,13 @@ describe('planner', () => {
   it('schedules one notification per rule at the chosen time', () => {
     const plan = planNotifications([product({})], DEFAULT_SETTINGS, now);
     expect(plan).toHaveLength(3);
-    expect(plan.map((p) => p.at.getDate())).toEqual([17, 21, 24]);
+    expect(plan.map((p) => p.at.getDate())).toEqual([17, 23, 24]);
     expect(plan.every((p) => p.at.getHours() === 9 && p.at.getMinutes() === 0)).toBe(true);
     expect(plan.map((p) => p.id)).toEqual([1, 2, 3]);
   });
 
   it('skips reminders whose time has passed', () => {
-    const late = new Date(2026, 10, 22, 12, 0);
+    const late = new Date(2026, 10, 23, 12, 0);
     const plan = planNotifications([product({})], DEFAULT_SETTINGS, late);
     expect(plan).toHaveLength(1);
     expect(plan[0].at.getDate()).toBe(24);
@@ -78,8 +78,22 @@ describe('planner', () => {
     expect(parseTime('x')).toEqual({ hours: 9, minutes: 0 });
   });
 
-  it('describes the rules', () => {
-    expect(describeRules(DEFAULT_SETTINGS)).toBe('قبل 7 و3 أيام ويوم الانتهاء');
-    expect(describeRules({ ...DEFAULT_SETTINGS, notifications_enabled: false })).toBe('التنبيهات متوقفة');
+  it('adds the quantity to the message when there are several', () => {
+    expect(notificationBody('زبادي', 0, '2026-11-24', 48)).toContain('×48');
+    expect(notificationBody('زبادي', 0, '2026-11-24', 1)).not.toContain('×');
+  });
+
+  it('plans each batch of the same product on its own date', () => {
+    const batches = [
+      product({ id: 'x1', expiry_date: '2026-11-20', quantity: 6 }),
+      product({ id: 'x2', expiry_date: '2026-11-21', quantity: 48 }),
+    ];
+    const settings: Settings = { ...DEFAULT_SETTINGS, default_remind_days: [0] };
+    const plan = planNotifications(batches, settings, now);
+    expect(plan.map((p) => [p.productId, p.at.getDate()])).toEqual([
+      ['x1', 20],
+      ['x2', 21],
+    ]);
+    expect(plan[1].body).toContain('×48');
   });
 });

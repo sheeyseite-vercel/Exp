@@ -1,22 +1,46 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { Empty, ErrorBanner, ProductRow } from '../components/ui';
-import { daysUntil } from '../lib/dates';
+import { Empty, ErrorBanner, ProductRow, StatusChip, Thumb } from '../components/ui';
+import { daysUntil, expiryLine } from '../lib/dates';
+import { t, type TKey } from '../lib/i18n';
+import { normalizeText, productKey } from '../lib/text';
+import type { Product } from '../lib/types';
 import { useData } from '../state/DataProvider';
 
 type Filter = 'all' | 'soon' | 'expired' | 'fresh';
 const FILTERS: Filter[] = ['all', 'soon', 'expired', 'fresh'];
-const LABELS: Record<Filter, string> = { all: 'الكل', soon: 'قريبًا', expired: 'منتهية', fresh: 'صالحة' };
 
-/** Makes Arabic search forgiving: ignores diacritics and common letter variants. */
-function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[ً-ٰٟـ]/g, '')
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ى/g, 'ي')
-    .replace(/ة/g, 'ه');
+interface Row {
+  product: Product;
+  days: number;
+}
+
+/** Batches of the same product, nearest expiry first. */
+function BatchGroup({ rows }: { rows: Row[] }) {
+  const total = rows.reduce((sum, row) => sum + row.product.quantity, 0);
+  const first = rows[0];
+  return (
+    <div className="card group">
+      <div className="row">
+        <Thumb product={first.product} size={52} />
+        <span className="row-main">
+          <span className="row-name">{first.product.name}</span>
+          <span className="row-sub">
+            {t('group_batches', { n: rows.length })} · {t('group_total', { n: total })}
+          </span>
+        </span>
+        <StatusChip days={first.days} />
+      </div>
+      {rows.map(({ product, days }) => (
+        <Link key={product.id} to={`/product/${product.id}`} className="batch">
+          <span className="batch-date">{expiryLine(product.expiry_date, days)}</span>
+          <span className="muted small">{t('row_qty', { n: product.quantity })}</span>
+          <StatusChip days={days} />
+        </Link>
+      ))}
+    </div>
+  );
 }
 
 export default function Products() {
@@ -27,7 +51,7 @@ export default function Products() {
   const requested = params.get('f') as Filter | null;
   const filter: Filter = requested && FILTERS.includes(requested) ? requested : 'all';
 
-  const rows = useMemo(() => {
+  const rows = useMemo<Row[]>(() => {
     const now = new Date();
     return products.map((product) => ({ product, days: daysUntil(product.expiry_date, now) }));
   }, [products]);
@@ -39,21 +63,27 @@ export default function Products() {
     fresh: rows.filter((r) => r.days > 7).length,
   };
 
-  const needle = normalize(query.trim());
+  const needle = normalizeText(query);
   const visible = rows.filter(({ product, days }) => {
     if (filter === 'soon' && !(days >= 0 && days <= 7)) return false;
     if (filter === 'expired' && days >= 0) return false;
     if (filter === 'fresh' && days <= 7) return false;
-    return needle === '' || normalize(product.name).includes(needle);
+    return needle === '' || normalizeText(product.name).includes(needle);
   });
+
+  // Same product bought several times: one card, one line per batch (rows are already sorted by expiry).
+  const groups = useMemo(() => {
+    const map = new Map<string, Row[]>();
+    for (const row of visible) {
+      const key = productKey(row.product);
+      map.set(key, [...(map.get(key) ?? []), row]);
+    }
+    return [...map.values()];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, filter, query]);
 
   return (
     <div className="page page-narrow">
-      <header className="page-head page-head-base">
-        <h1>منتجاتي</h1>
-        <span className="muted">{counts.all} منتجًا</span>
-      </header>
-
       <ErrorBanner message={error} />
 
       <label className="search" htmlFor="product-search">
@@ -61,13 +91,13 @@ export default function Products() {
         <input
           id="product-search"
           type="search"
-          placeholder="ابحث عن منتج"
+          placeholder={t('products_search')}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
 
-      <div className="filters" role="group" aria-label="تصفية المنتجات">
+      <div className="filters" role="group" aria-label={t('filters_aria')}>
         {FILTERS.map((item) => (
           <button
             key={item}
@@ -76,33 +106,37 @@ export default function Products() {
             className={`fchip fchip-${item} ${filter === item ? 'active' : ''}`}
             onClick={() => setParams(item === 'all' ? {} : { f: item }, { replace: true })}
           >
-            {LABELS[item]} {counts[item]}
+            {t(`filter_${item}` as TKey)} {counts[item]}
           </button>
         ))}
       </div>
 
       <div className="list">
-        {visible.map(({ product }) => (
-          <ProductRow key={product.id} product={product} />
-        ))}
+        {groups.map((group) =>
+          group.length === 1 ? (
+            <ProductRow key={group[0].product.id} product={group[0].product} />
+          ) : (
+            <BatchGroup key={productKey(group[0].product)} rows={group} />
+          ),
+        )}
         {visible.length === 0 &&
           (loaded ? (
             rows.length === 0 ? (
               <Empty
-                title="لا توجد منتجات بعد"
-                text="أضف أول منتج بالمسح أو يدويًا وسنتتبّع صلاحيته."
+                title={t('empty_title')}
+                text={t('empty_text')}
                 action={
                   <Link to="/scan" className="btn btn-primary">
                     <Icon name="plus" size={20} stroke={2.2} />
-                    إضافة منتج
+                    {t('add_product')}
                   </Link>
                 }
               />
             ) : (
-              <Empty title="لا توجد نتائج" text="جرّب كلمة أخرى أو غيّر التصفية." />
+              <Empty title={t('no_results_title')} text={t('no_results_text')} />
             )
           ) : (
-            <p className="muted center">جارٍ التحميل…</p>
+            <p className="muted center">{t('loading')}</p>
           ))}
       </div>
     </div>

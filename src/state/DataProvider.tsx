@@ -14,6 +14,7 @@ import type { PluginListenerHandle } from '@capacitor/core';
 import type { Session, User } from '@supabase/supabase-js';
 import { AUTH_REDIRECT_NATIVE, PHOTO_BUCKET } from '../lib/config';
 import { daysUntil } from '../lib/dates';
+import { t } from '../lib/i18n';
 import { syncNotifications, type PermissionState } from '../lib/notifications';
 import { isNative, supabase } from '../lib/supabase';
 import { DEFAULT_SETTINGS, type Product, type ProductInput, type Settings } from '../lib/types';
@@ -39,6 +40,7 @@ interface DataContextValue {
   removeProduct: (id: string) => Promise<void>;
   consumeProduct: (id: string) => Promise<void>;
   updateSettings: (patch: Partial<Settings>) => Promise<void>;
+  updateDisplayName: (name: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -49,7 +51,7 @@ function cacheKey(uid: string): string {
 
 function describeError(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) return String((error as { message: unknown }).message);
-  return 'حدث خطأ غير متوقع';
+  return t('unexpected_error');
 }
 
 function sortByExpiry(list: Product[]): Product[] {
@@ -171,7 +173,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       } catch {
         /* ignore a broken cache */
       }
-      setError(restored ? 'تعذّر الاتصال. تُعرض آخر بيانات محفوظة على الجهاز.' : describeError(failure));
+      setError(restored ? t('offline_cache') : describeError(failure));
     } finally {
       setLoading(false);
       setLoaded(true);
@@ -225,7 +227,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const saveProduct = useCallback(
     async (input: ProductInput, photo?: Blob | null, id?: string): Promise<Product> => {
-      if (!uid) throw new Error('يجب تسجيل الدخول أولًا');
+      if (!uid) throw new Error(t('login_first'));
       const previous = id ? allRef.current.find((p) => p.id === id) : undefined;
       let photoPath: string | null =
         input.photo_path !== undefined ? input.photo_path : (previous?.photo_path ?? null);
@@ -258,7 +260,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const saved = data as Product;
 
       if (previous?.photo_path && previous.photo_path !== photoPath) {
-        void supabase.storage.from(PHOTO_BUCKET).remove([previous.photo_path]);
+        const stillUsed = allRef.current.some((p) => p.id !== id && p.photo_path === previous.photo_path);
+        if (!stillUsed) void supabase.storage.from(PHOTO_BUCKET).remove([previous.photo_path]);
       }
       setAll((current) => sortByExpiry(id ? current.map((p) => (p.id === id ? saved : p)) : [...current, saved]));
       return saved;
@@ -270,7 +273,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const target = allRef.current.find((p) => p.id === id);
     const { error: deleteError } = await supabase.from('products').delete().eq('id', id);
     if (deleteError) throw deleteError;
-    if (target?.photo_path) void supabase.storage.from(PHOTO_BUCKET).remove([target.photo_path]);
+    const photoShared = allRef.current.some((p) => p.id !== id && p.photo_path === target?.photo_path);
+    if (target?.photo_path && !photoShared) void supabase.storage.from(PHOTO_BUCKET).remove([target.photo_path]);
     setAll((current) => current.filter((p) => p.id !== id));
   }, []);
 
@@ -302,6 +306,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [uid],
   );
 
+  const updateDisplayName = useCallback(async (name: string) => {
+    const { data, error: updateError } = await supabase.auth.updateUser({ data: { display_name: name.trim() } });
+    if (updateError) throw updateError;
+    setSession((current) => (current && data.user ? { ...current, user: data.user } : current));
+  }, []);
+
   const value = useMemo<DataContextValue>(
     () => ({
       authReady,
@@ -323,6 +333,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       removeProduct,
       consumeProduct,
       updateSettings,
+      updateDisplayName,
     }),
     [
       authReady,
@@ -343,6 +354,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       removeProduct,
       consumeProduct,
       updateSettings,
+      updateDisplayName,
     ],
   );
 

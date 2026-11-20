@@ -22,7 +22,12 @@ export type IconName =
   | 'bolt'
   | 'droplet'
   | 'snowflake'
-  | 'logout';
+  | 'logout'
+  | 'globe'
+  | 'refresh'
+  | 'send'
+  | 'layers'
+  | 'cloud';
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -98,7 +103,19 @@ const PATHS: Record<IconName, ReactNode> = {
   droplet: <path d="M12 3.5s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0c0-4 5.5-10 5.5-10z" />,
   snowflake: <path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9" />,
   logout: <path d="M14 4.5h4.5A1.5 1.5 0 0 1 20 6v12a1.5 1.5 0 0 1-1.5 1.5H14M10 8l-4 4 4 4M6 12h10" />,
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z" />
+    </>
+  ),
+  refresh: <path d="M20 11a8 8 0 0 0-14.3-4.5L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.3 4.5l1.7-2M20 20v-4.5h-4.5" />,
+  send: <path d="M20.5 3.5 3.5 10.8l6.3 2.4 2.4 6.3zM9.8 13.2l5-5" />,
+  layers: <path d="m12 3.5 9 4.5-9 4.5L3 8zM3 12l9 4.5 9-4.5M3 16l9 4.5 9-4.5" />,
+  cloud: <path d="M7 18.5a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 9.5a4.5 4.5 0 0 1-.5 9z" />,
 };
+
+const FLIPPED: IconName[] = ['chevronLeft', 'chevronRight', 'logout', 'send'];
 
 interface IconProps {
   name: IconName;
@@ -118,6 +135,7 @@ export function Icon({ name, size = 24, stroke = 1.8 }: IconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
+      className={FLIPPED.includes(name) ? 'rtl-flip' : undefined}
     >
       {PATHS[name]}
     </svg>

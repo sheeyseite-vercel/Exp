@@ -1,21 +1,26 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import { t } from '../lib/i18n';
 import { useData } from '../state/DataProvider';
 import { Icon, type IconName } from './Icon';
 
-const TABS: { to: string; label: string; icon: IconName; end?: boolean }[] = [
-  { to: '/', label: 'الرئيسية', icon: 'home', end: true },
-  { to: '/products', label: 'المنتجات', icon: 'cube' },
-  { to: '/alerts', label: 'التنبيهات', icon: 'bell' },
-  { to: '/profile', label: 'حسابي', icon: 'user' },
-];
+type Tab = { to: string; label: string; icon: IconName; end?: boolean };
+
+function tabs(): Tab[] {
+  return [
+    { to: '/', label: t('nav_home'), icon: 'home', end: true },
+    { to: '/products', label: t('nav_products'), icon: 'cube' },
+    { to: '/alerts', label: t('nav_alerts'), icon: 'bell' },
+    { to: '/profile', label: t('nav_profile'), icon: 'user' },
+  ];
+}
 
 export function userDisplayName(user: { user_metadata?: Record<string, unknown>; email?: string } | null): string {
   const meta = user?.user_metadata ?? {};
-  const name = (meta.full_name ?? meta.name) as string | undefined;
-  return name?.trim() || user?.email?.split('@')[0] || 'حسابي';
+  const name = (meta.display_name ?? meta.full_name ?? meta.name) as string | undefined;
+  return name?.trim() || user?.email?.split('@')[0] || t('nav_profile');
 }
 
-function BottomTab({ tab }: { tab: (typeof TABS)[number] }) {
+function BottomTab({ tab }: { tab: Tab }) {
   return (
     <NavLink to={tab.to} end={tab.end} className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>
       <span className="tab-icon">
@@ -29,6 +34,7 @@ function BottomTab({ tab }: { tab: (typeof TABS)[number] }) {
 export function AppShell() {
   const { user } = useData();
   const name = userDisplayName(user);
+  const TABS = tabs();
 
   return (
     <div className="shell">
@@ -37,7 +43,7 @@ export function AppShell() {
           <span className="logo">
             <Icon name="calendarCheck" />
           </span>
-          <span className="brand-name">صلاحيتي</span>
+          <span className="brand-name">{t('app_name')}</span>
         </div>
         {TABS.map((tab) => (
           <NavLink
@@ -53,7 +59,7 @@ export function AppShell() {
         <span className="grow" />
         <Link to="/scan" className="btn btn-primary">
           <Icon name="plus" size={20} stroke={2.2} />
-          إضافة منتج
+          {t('add_product')}
         </Link>
         <div className="side-user">
           <span className="avatar avatar-sm">{name.slice(0, 1)}</span>
@@ -68,10 +74,10 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      <nav className="bottom-nav" aria-label="التنقل الرئيسي">
+      <nav className="bottom-nav" aria-label={t('nav_aria')}>
         <BottomTab tab={TABS[0]} />
         <BottomTab tab={TABS[1]} />
-        <Link to="/scan" className="fab" aria-label="إضافة منتج">
+        <Link to="/scan" className="fab" aria-label={t('add_product')}>
           <Icon name="plus" size={26} stroke={2} />
         </Link>
         <BottomTab tab={TABS[2]} />

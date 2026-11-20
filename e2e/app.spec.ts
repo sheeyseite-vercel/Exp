@@ -64,7 +64,13 @@ async function setup(page: Page, rows: Row[], settings: Row | null = null) {
   const json = (route: import('@playwright/test').Route, body: unknown, status = 200) =>
     route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
-  await page.route(`**/auth/v1/user*`, (route) => json(route, user));
+  await page.route(`**/auth/v1/user*`, (route) => {
+    if (route.request().method() === 'PUT') {
+      const sent = route.request().postDataJSON() as { data?: Record<string, unknown> };
+      user.user_metadata = { ...user.user_metadata, ...(sent.data ?? {}) };
+    }
+    return json(route, user);
+  });
   await page.route(`**/rest/v1/user_settings*`, async (route) => {
     const method = route.request().method();
     if (method === 'GET') return json(route, settings ? [settings] : []);
@@ -109,8 +115,9 @@ test('phone: browse, add manually, details, alerts, profile', async ({ page }) =
   await setup(page, rows);
 
   await page.goto('/');
-  await expect(page.getByText('حليب كامل الدسم 1 لتر').first()).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/01-home-phone.png` });
+  await expect(page.getByText('مرحبًا بك في صلاحيتي')).toBeVisible();
+  await expect(page.getByText('كل دفعة مستقلة')).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/01-home-phone.png`, fullPage: true });
 
   await page.goto('/#/products');
   await expect(page.getByText('خبز التوست')).toBeVisible();
@@ -138,19 +145,61 @@ test('phone: browse, add manually, details, alerts, profile', async ({ page }) =
   // alerts
   await page.goto('/#/alerts');
   await expect(page.getByRole('heading', { name: 'التنبيهات' })).toBeVisible();
-  const three = page.getByRole('switch', { name: 'قبل 3 أيام' });
-  await expect(three).toBeVisible();
+  const seven = page.getByRole('button', { name: /قبل 7 أيام/ });
+  await expect(seven).toHaveAttribute('aria-pressed', 'true');
+  await seven.click();
+  await expect(seven).toHaveAttribute('aria-pressed', 'false');
+  await seven.click();
+  await expect(seven).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /قبل 3 أيام/ })).toHaveCount(0);
   await page.screenshot({ path: `${SHOTS}/05-alerts-phone.png`, fullPage: true });
 
   await page.goto('/#/profile');
   await expect(page.getByRole('main').getByText('amina@example.com')).toBeVisible();
-  await page.screenshot({ path: `${SHOTS}/06-profile-phone.png` });
+  await page.screenshot({ path: `${SHOTS}/06-profile-phone.png`, fullPage: true });
+
+  // change the display name
+  await page.getByRole('button', { name: 'تعديل الاسم' }).click();
+  await page.getByLabel('الاسم الظاهر').fill('أمينة');
+  await page.getByRole('button', { name: 'حفظ', exact: true }).click();
+  await expect(page.getByRole('main').getByText('أمينة', { exact: true })).toBeVisible();
+
+  // test notification is only available in the phone app
+  await page.getByRole('button', { name: 'إرسال' }).click();
+  await expect(page.getByText('الإشعارات تعمل داخل تطبيق الهاتف فقط.')).toBeVisible();
+
+  // switch to French and back
+  await page.getByRole('button', { name: 'Français' }).click();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await expect(page.getByRole('link', { name: 'Produits' }).last()).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/06b-profile-fr.png`, fullPage: true });
+  await page.getByRole('button', { name: 'العربية' }).click();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 
   await page.goto('/#/scan');
   await expect(page.getByText(/إدخال يدوي|يدويًا/).first()).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/07-scan-phone.png` });
 
   expect(errors).toEqual([]);
+});
+
+test('same product, several batches', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const rows = seed();
+  await setup(page, rows);
+  await page.goto('/#/product/new');
+  await page.getByLabel('اسم المنتج').fill('زبادي');
+  await page.getByRole('button', { name: 'زبادي طبيعي' }).click();
+  await expect(page.getByText(/لديك 1 من هذا المنتج/)).toBeVisible();
+  await page.getByLabel('الكمية', { exact: true }).fill('48');
+  await page.getByRole('button', { name: 'بعد شهر' }).click();
+  await page.screenshot({ path: `${SHOTS}/03b-batch-form.png`, fullPage: true });
+  await page.getByRole('button', { name: /حفظ المنتج/ }).click();
+  await expect(page.getByText('2 دفعات')).toBeVisible();
+  await expect(page.getByText('الإجمالي 49')).toBeVisible();
+  expect(rows.filter((r) => r.name === 'زبادي طبيعي')).toHaveLength(2);
+  expect(rows.find((r) => r.id.startsWith('n'))?.quantity).toBe(48);
+  await page.screenshot({ path: `${SHOTS}/03c-batches.png`, fullPage: true });
 });
 
 test('delete a product', async ({ page }) => {
@@ -168,10 +217,13 @@ test('tablet: sidebar layout', async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 800 });
   await setup(page, seed());
   await page.goto('/');
-  await expect(page.getByText('حليب كامل الدسم 1 لتر').first()).toBeVisible();
+  await expect(page.getByText('مرحبًا بك في صلاحيتي')).toBeVisible();
   await expect(page.locator('.sidebar')).toBeVisible();
   await expect(page.locator('.bottom-nav')).toBeHidden();
   await page.screenshot({ path: `${SHOTS}/08-home-tablet.png` });
+  await page.goto('/#/products');
+  await expect(page.getByText('حليب كامل الدسم 1 لتر').first()).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/09-products-tablet.png` });
 });
 
 test('signed out shows login', async ({ page }) => {

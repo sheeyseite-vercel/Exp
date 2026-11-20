@@ -2,6 +2,7 @@ import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { t } from '../lib/i18n';
 import { setDraft } from '../lib/draft';
 import { formatFull } from '../lib/dates';
 import { compressImage } from '../lib/image';
@@ -34,7 +35,7 @@ async function ensureScannerModule(): Promise<void> {
     const check = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
     if (check.available) return;
   }
-  throw new Error('تعذّر تجهيز الماسح. تحقق من اتصالك بالإنترنت وحاول مجددًا.');
+  throw new Error(t('scanner_fail'));
 }
 
 export default function Scan() {
@@ -57,7 +58,7 @@ export default function Scan() {
   async function startScan() {
     setError(null);
     if (!isNative) {
-      setError('المسح متاح داخل التطبيق على الهاتف فقط. يمكنك إدخال البيانات يدويًا.');
+      setError(t('scan_web_only'));
       return;
     }
     setBusy(true);
@@ -76,7 +77,7 @@ export default function Scan() {
       });
       const raw = barcodes[0]?.rawValue ?? barcodes[0]?.displayValue ?? '';
       if (!raw) {
-        setError('لم يُقرأ أي رمز. حاول مرة أخرى.');
+        setError(t('scan_none'));
         return;
       }
       const info = parseScan(raw);
@@ -92,7 +93,7 @@ export default function Scan() {
       setResult({ kind: 'code', name, expiry: info.expiry, barcode: info.barcode, category });
     } catch (failure) {
       const message = failure instanceof Error ? failure.message : '';
-      if (!/cancel/i.test(message)) setError(message || 'تعذّر المسح. حاول مرة أخرى.');
+      if (!/cancel/i.test(message)) setError(message || t('scan_fail'));
     } finally {
       setBusy(false);
     }
@@ -106,7 +107,7 @@ export default function Scan() {
       const photo = await compressImage(file);
       setResult({ kind: 'photo', photo, previewUrl: URL.createObjectURL(photo) });
     } catch {
-      setError('تعذّرت معالجة الصورة. حاول مرة أخرى.');
+      setError(t('photo_fail'));
     } finally {
       setBusy(false);
     }
@@ -125,23 +126,23 @@ export default function Scan() {
   }
 
   const detectedTitle =
-    result?.kind === 'photo' ? 'تم التقاط الصورة' : (result?.name ?? 'تمت قراءة الرمز');
+    result?.kind === 'photo' ? t('detected_photo') : (result?.name ?? t('detected_code'));
   const detectedText =
     result?.kind === 'photo'
-      ? 'ستدخل الاسم وتاريخ الانتهاء في الخطوة التالية.'
+      ? t('detected_photo_text')
       : result?.expiry
-        ? `تاريخ الانتهاء ${formatFull(result.expiry)}`
+        ? t('detected_expiry', { date: formatFull(result.expiry) })
         : result?.name
-          ? 'تم التعرّف على المنتج من الرمز.'
-          : 'لم نجد اسم المنتج في الرمز، ستدخله في الخطوة التالية.';
+          ? t('detected_known')
+          : t('detected_noname');
 
   return (
     <div className="scan">
       <div className="scan-top">
-        <Link to="/" className="round-btn round-btn-glass" aria-label="إغلاق">
+        <Link to="/" className="round-btn round-btn-glass" aria-label={t('close')}>
           <Icon name="close" size={22} stroke={2} />
         </Link>
-        <span className="scan-title">إضافة منتج</span>
+        <span className="scan-title">{t('scan_title')}</span>
         <span className="round-btn round-btn-ghost" aria-hidden="true" />
       </div>
 
@@ -154,12 +155,12 @@ export default function Scan() {
           {mode === 'qr' ? (
             <button type="button" className="frame-action" onClick={() => void startScan()} disabled={busy}>
               <Icon name="scan" size={34} />
-              {busy ? 'جارٍ التحضير…' : 'اضغط لبدء المسح'}
+              {busy ? t('scan_preparing') : t('scan_tap')}
             </button>
           ) : (
             <label className="frame-action" htmlFor="photo-input">
               <Icon name="camera" size={34} />
-              {busy ? 'جارٍ المعالجة…' : 'التقط صورة للمنتج'}
+              {busy ? t('scan_processing') : t('scan_take_photo')}
               <input
                 id="photo-input"
                 type="file"
@@ -175,13 +176,13 @@ export default function Scan() {
           )}
         </div>
         <span className="scan-hint">
-          {mode === 'qr' ? 'وجّه الكاميرا نحو رمز QR أو الباركود على المنتج' : 'صوّر واجهة المنتج لتظهر في القائمة'}
+          {mode === 'qr' ? t('scan_hint_qr') : t('scan_hint_photo')}
         </span>
       </div>
 
       <div className="sheet">
         <span className="grabber" />
-        <div className="segmented" role="group" aria-label="طريقة الإضافة">
+        <div className="segmented" role="group" aria-label={t('mode_aria')}>
           <button
             type="button"
             aria-pressed={mode === 'qr'}
@@ -193,7 +194,7 @@ export default function Scan() {
             }}
           >
             <Icon name="scan" size={18} stroke={1.9} />
-            رمز QR
+            {t('mode_qr')}
           </button>
           <button
             type="button"
@@ -206,11 +207,11 @@ export default function Scan() {
             }}
           >
             <Icon name="camera" size={18} stroke={1.9} />
-            صورة المنتج
+            {t('mode_photo')}
           </button>
           <Link to="/product/new" onClick={() => setDraft(null)}>
             <Icon name="pencil" size={18} stroke={1.9} />
-            يدويًا
+            {t('mode_manual')}
           </Link>
         </div>
 
@@ -229,15 +230,15 @@ export default function Scan() {
               <span className="row-name">{detectedTitle}</span>
               <span className="row-sub">{detectedText}</span>
             </span>
-            <span className="chip chip-mint">جاهز</span>
+            <span className="chip chip-mint">{t('ready')}</span>
           </div>
         )}
 
         <button type="button" className="btn btn-primary" disabled={!result} onClick={proceed}>
-          متابعة وتحديد تاريخ الانتهاء
+          {t('scan_continue')}
           <Icon name="chevronLeft" size={20} stroke={2} />
         </button>
-        <p className="muted small center">إن لم يظهر تاريخ الانتهاء في الرمز، ستحدده بنفسك في الخطوة التالية.</p>
+        <p className="muted small center">{t('scan_continue_hint')}</p>
       </div>
     </div>
   );

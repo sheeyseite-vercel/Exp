@@ -1,4 +1,5 @@
 import { daysPhrase, formatDay, parseISO } from './dates';
+import { t } from './i18n';
 import type { Product, Settings } from './types';
 
 export interface PlannedNotification {
@@ -11,10 +12,11 @@ export interface PlannedNotification {
 
 const MAX_SCHEDULED = 300;
 
-export function notificationBody(name: string, daysBefore: number, expiryISO: string): string {
-  if (daysBefore === 0) return `${name}: تنتهي صلاحيته اليوم.`;
-  if (daysBefore === 1) return `${name}: تنتهي صلاحيته غدًا.`;
-  return `${name}: تنتهي صلاحيته بعد ${daysPhrase(daysBefore)}، يوم ${formatDay(expiryISO)}.`;
+export function notificationBody(name: string, daysBefore: number, expiryISO: string, quantity = 1): string {
+  const label = quantity > 1 ? `${name} ×${quantity}` : name;
+  if (daysBefore === 0) return t('notif_today', { name: label });
+  if (daysBefore === 1) return t('notif_tomorrow', { name: label });
+  return t('notif_in', { name: label, days: daysPhrase(daysBefore), date: formatDay(expiryISO) });
 }
 
 export function parseTime(value: string): { hours: number; minutes: number } {
@@ -41,8 +43,8 @@ export function planNotifications(
       if (at.getTime() <= now.getTime()) continue;
       planned.push({
         at,
-        title: 'صلاحيتي',
-        body: notificationBody(product.name, daysBefore, product.expiry_date),
+        title: t('app_name'),
+        body: notificationBody(product.name, daysBefore, product.expiry_date, product.quantity),
         productId: product.id,
       });
     }
@@ -50,15 +52,4 @@ export function planNotifications(
 
   planned.sort((a, b) => a.at.getTime() - b.at.getTime());
   return planned.slice(0, MAX_SCHEDULED).map((item, index) => ({ ...item, id: index + 1 }));
-}
-
-/** Short text such as "قبل 7 و3 أيام" for the active rules. */
-export function describeRules(settings: Settings): string {
-  if (!settings.notifications_enabled) return 'التنبيهات متوقفة';
-  const unique = [...new Set(settings.default_remind_days)];
-  const before = unique.filter((d) => d > 0).sort((a, b) => b - a);
-  const onDay = unique.includes(0);
-  if (before.length === 0) return onDay ? 'يوم الانتهاء فقط' : 'لا توجد قواعد مفعّلة';
-  const text = before.length === 1 ? `قبل ${daysPhrase(before[0])}` : `قبل ${before.join(' و')} أيام`;
-  return onDay ? `${text} ويوم الانتهاء` : text;
 }

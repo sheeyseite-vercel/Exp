@@ -14,6 +14,7 @@ import {
   statusOf,
   toISO,
 } from '../lib/dates';
+import { t } from '../lib/i18n';
 import { parseTime } from '../lib/planner';
 import { useData } from '../state/DataProvider';
 
@@ -32,20 +33,20 @@ export default function Details() {
       <div className="page page-form">
         <header className="form-head">
           <BackButton to="/products" />
-          <h1>تفاصيل المنتج</h1>
+          <h1>{t('details_title')}</h1>
         </header>
         {loaded ? (
           <Empty
-            title="المنتج غير موجود"
-            text="ربما حُذف أو تم استهلاكه."
+            title={t('not_found_title')}
+            text={t('not_found_text')}
             action={
               <Link to="/products" className="btn btn-primary">
-                العودة إلى المنتجات
+                {t('back_products')}
               </Link>
             }
           />
         ) : (
-          <p className="muted center">جارٍ التحميل…</p>
+          <p className="muted center">{t('loading')}</p>
         )}
       </div>
     );
@@ -56,7 +57,7 @@ export default function Details() {
   const tone = toneOf(statusOf(days));
   const added = toISO(new Date(product.created_at));
   const progress = shelfProgress(added, product.expiry_date, now);
-  const bigLabel = days < 0 ? 'يوم منذ انتهاء الصلاحية' : days === 0 ? 'ينتهي اليوم' : 'يوم حتى الانتهاء';
+  const bigLabel = days < 0 ? t('big_expired') : days === 0 ? t('big_today') : t('big_left');
 
   const rules = [...new Set(product.remind_days ?? settings.default_remind_days)].sort((a, b) => b - a);
   const { hours, minutes } = parseTime(settings.notify_time);
@@ -70,7 +71,7 @@ export default function Details() {
       navigate('/products', { replace: true });
     } catch (failure) {
       const message = failure && typeof failure === 'object' && 'message' in failure ? String(failure.message) : '';
-      setError(message || 'تعذّر تنفيذ العملية. حاول مرة أخرى.');
+      setError(message || t('op_fail'));
       setBusy(false);
     }
   }
@@ -80,16 +81,16 @@ export default function Details() {
       <header className="form-head form-head-between">
         <div className="form-head-start">
           <BackButton to="/products" />
-          <h1>تفاصيل المنتج</h1>
+          <h1>{t('details_title')}</h1>
         </div>
         <div className="head-actions">
-          <Link to={`/product/${product.id}/edit`} className="round-btn" aria-label="تعديل">
+          <Link to={`/product/${product.id}/edit`} className="round-btn" aria-label={t('edit')}>
             <Icon name="pencil" size={20} />
           </Link>
           <button
             type="button"
             className="round-btn round-btn-danger"
-            aria-label="حذف"
+            aria-label={t('delete')}
             onClick={() => setConfirming((value) => !value)}
           >
             <Icon name="trash" size={20} />
@@ -98,8 +99,8 @@ export default function Details() {
       </header>
 
       {confirming && (
-        <div className="card confirm" role="alertdialog" aria-label="تأكيد الحذف">
-          <span className="row-name">حذف هذا المنتج نهائيًا؟</span>
+        <div className="card confirm" role="alertdialog" aria-label={t('confirm_aria')}>
+          <span className="row-name">{t('confirm_delete')}</span>
           <span className="confirm-actions">
             <button
               type="button"
@@ -107,10 +108,10 @@ export default function Details() {
               disabled={busy}
               onClick={() => void run(() => removeProduct(product.id))}
             >
-              حذف
+              {t('delete')}
             </button>
             <button type="button" className="btn btn-soft btn-sm" onClick={() => setConfirming(false)}>
-              إلغاء
+              {t('cancel')}
             </button>
           </span>
         </div>
@@ -133,27 +134,27 @@ export default function Details() {
             <span style={{ width: `${progress}%` }} />
           </span>
           <span className="progress-labels">
-            <span>أُضيف {formatDay(added)}</span>
-            <span>ينتهي {formatDay(product.expiry_date)}</span>
+            <span>{t('added_on', { date: formatDay(added) })}</span>
+            <span>{t('ends_on', { date: formatDay(product.expiry_date) })}</span>
           </span>
         </div>
       </section>
 
       <div className="info-grid">
         <div className="card info">
-          <span className="muted small">تاريخ الانتهاء</span>
+          <span className="muted small">{t('info_expiry')}</span>
           <strong>{formatFull(product.expiry_date)}</strong>
         </div>
         <div className="card info">
-          <span className="muted small">الكمية</span>
+          <span className="muted small">{t('info_qty')}</span>
           <strong>{product.quantity}</strong>
         </div>
       </div>
 
       <section className="card timeline">
-        <h2>جدول التنبيهات</h2>
-        {!settings.notifications_enabled && <p className="muted small">التنبيهات متوقفة من صفحة التنبيهات.</p>}
-        {rules.length === 0 && <p className="muted small">لا توجد تنبيهات لهذا المنتج.</p>}
+        <h2>{t('timeline_title')}</h2>
+        {!settings.notifications_enabled && <p className="muted small">{t('notif_off_note')}</p>}
+        {rules.length === 0 && <p className="muted small">{t('no_rules')}</p>}
         {rules.map((daysBefore) => {
           const at = new Date(expiry.y, expiry.m - 1, expiry.d - daysBefore, hours, minutes);
           const past = at.getTime() <= now.getTime();
@@ -162,9 +163,9 @@ export default function Details() {
               <span className={`tl-dot ${past ? 'done' : ''}`}>
                 <Icon name={past ? 'check' : 'clock'} size={16} stroke={2.2} />
               </span>
-              <span className="tl-name">{daysBefore === 0 ? 'يوم الانتهاء' : `قبل ${daysPhrase(daysBefore)}`}</span>
+              <span className="tl-name">{daysBefore === 0 ? t('tl_day0') : t('tl_before', { days: daysPhrase(daysBefore) })}</span>
               <span className="muted small">
-                {formatDay(addDays(product.expiry_date, -daysBefore))} · {past ? 'مضى موعده' : 'قادم'}
+                {formatDay(addDays(product.expiry_date, -daysBefore))} · {past ? t('tl_past') : t('tl_next')}
               </span>
             </div>
           );
@@ -187,10 +188,10 @@ export default function Details() {
           onClick={() => void run(() => consumeProduct(product.id))}
         >
           <Icon name="check" size={20} stroke={2.2} />
-          تم استهلاكه
+          {t('consumed')}
         </button>
         <Link to={`/product/${product.id}/edit`} className="btn btn-outline">
-          تعديل
+          {t('edit')}
         </Link>
       </div>
     </div>

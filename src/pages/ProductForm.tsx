@@ -2,26 +2,28 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { BackButton } from '../components/ui';
-import { CATEGORIES } from '../lib/categories';
+import { CATEGORY_IDS, categoryLabel } from '../lib/categories';
 import { addDays, daysPhrase, daysUntil, isValidISO, toISO } from '../lib/dates';
 import { getDraft, setDraft } from '../lib/draft';
+import { t } from '../lib/i18n';
 import { compressImage } from '../lib/image';
+import { normalizeText, productKey } from '../lib/text';
 import type { Category } from '../lib/types';
 import { useData } from '../state/DataProvider';
 import { usePhotoUrl } from '../state/usePhotoUrl';
 
-const PRESET_DAYS = [7, 3, 1, 0];
+const PRESET_DAYS = [7, 1, 0];
 
 function remindLabel(days: number): string {
-  return days === 0 ? 'يوم الانتهاء' : daysPhrase(days);
+  return days === 0 ? t('remind_day0') : daysPhrase(days);
 }
 
 function remainingText(iso: string): string {
-  if (!isValidISO(iso)) return 'اختر التاريخ';
+  if (!isValidISO(iso)) return t('pick_date');
   const days = daysUntil(iso);
-  if (days < 0) return `منتهٍ منذ ${daysPhrase(-days)}`;
-  if (days === 0) return 'ينتهي اليوم';
-  return `بعد ${daysPhrase(days)}`;
+  if (days < 0) return t('expired_since', { d: daysPhrase(-days) });
+  if (days === 0) return t('expires_today');
+  return t('in_days', { d: daysPhrase(days) });
 }
 
 export default function ProductForm() {
@@ -36,7 +38,8 @@ export default function ProductForm() {
   const [name, setName] = useState(draft?.name ?? '');
   const [category, setCategory] = useState<Category>(draft?.category ?? 'other');
   const [expiry, setExpiry] = useState(draft?.expiry ?? '');
-  const [quantity, setQuantity] = useState(1);
+  const [qtyText, setQtyText] = useState('1');
+  const [reusePath, setReusePath] = useState<string | null>(null);
   const [remind, setRemind] = useState<number[] | null>(null);
   const [barcode, setBarcode] = useState<string | null>(draft?.barcode ?? null);
   const [photo, setPhoto] = useState<Blob | null>(draft?.photo ?? null);
@@ -53,7 +56,7 @@ export default function ProductForm() {
     setName(existing.name);
     setCategory(existing.category);
     setExpiry(existing.expiry_date);
-    setQuantity(existing.quantity);
+    setQtyText(String(existing.quantity));
     setRemind(existing.remind_days);
     setBarcode(existing.barcode);
     setInitialised(true);
@@ -70,8 +73,35 @@ export default function ProductForm() {
     },
     [localPreview],
   );
-  const storedPreview = usePhotoUrl(removePhoto ? null : existing?.photo_path);
+  const storedPreview = usePhotoUrl(removePhoto ? null : (existing?.photo_path ?? reusePath));
   const preview = localPreview ?? storedPreview;
+
+  const parsedQty = Number.parseInt(qtyText, 10);
+  const quantity = Number.isFinite(parsedQty) ? Math.max(1, Math.min(999, parsedQty)) : 1;
+
+  // Products already in the list: offer them as shortcuts, and explain that each batch is tracked on its own.
+  const needle = normalizeText(name);
+  const known = useMemo(() => {
+    const seen = new Map<string, (typeof products)[number]>();
+    for (const product of products) if (product.id !== id && !seen.has(productKey(product))) seen.set(productKey(product), product);
+    return [...seen.values()];
+  }, [products, id]);
+  const suggestions =
+    needle.length > 0 && !editing ? known.filter((p) => normalizeText(p.name).includes(needle) && normalizeText(p.name) !== needle).slice(0, 4) : [];
+  const sameProduct = products.filter(
+    (p) => p.id !== id && ((barcode && p.barcode === barcode) || (needle.length > 0 && normalizeText(p.name) === needle)),
+  );
+  const sameQuantity = sameProduct.reduce((sum, p) => sum + p.quantity, 0);
+
+  function pickSuggestion(product: (typeof products)[number]) {
+    setName(product.name);
+    setCategory(product.category);
+    setBarcode(product.barcode);
+    if (!photo && product.photo_path) {
+      setReusePath(product.photo_path);
+      setRemovePhoto(false);
+    }
+  }
 
   const effective = remind ?? settings.default_remind_days;
   const extras = effective.filter((d) => !PRESET_DAYS.includes(d)).sort((a, b) => b - a);
@@ -86,7 +116,7 @@ export default function ProductForm() {
   function addCustom() {
     const value = Number.parseInt(customValue, 10);
     if (!Number.isFinite(value) || value < 1 || value > 365) {
-      setError('اكتب عدد أيام بين 1 و365 للتنبيه المخصص.');
+      setError(t('custom_error'));
       return;
     }
     setError(null);
@@ -101,18 +131,18 @@ export default function ProductForm() {
       setPhoto(await compressImage(file));
       setRemovePhoto(false);
     } catch {
-      setError('تعذّرت معالجة الصورة. حاول مرة أخرى.');
+      setError(t('photo_fail'));
     }
   }
 
   async function save() {
     setError(null);
     if (!name.trim()) {
-      setError('اكتب اسم المنتج.');
+      setError(t('err_name'));
       return;
     }
     if (!isValidISO(expiry)) {
-      setError('اختر تاريخ الانتهاء.');
+      setError(t('err_date'));
       return;
     }
     setSaving(true);
@@ -125,7 +155,7 @@ export default function ProductForm() {
           quantity,
           barcode,
           remind_days: remind,
-          photo_path: removePhoto && !photo ? null : undefined,
+          photo_path: removePhoto && !photo ? null : (reusePath ?? undefined),
         },
         photo,
         id,
@@ -134,7 +164,7 @@ export default function ProductForm() {
       navigate(editing ? `/product/${saved.id}` : '/products', { replace: true });
     } catch (failure) {
       const message = failure && typeof failure === 'object' && 'message' in failure ? String(failure.message) : '';
-      setError(message || 'تعذّر حفظ المنتج. حاول مرة أخرى.');
+      setError(message || t('save_fail'));
     } finally {
       setSaving(false);
     }
@@ -146,20 +176,21 @@ export default function ProductForm() {
     <div className="page page-form">
       <header className="form-head">
         <BackButton />
-        <h1>{editing ? 'تعديل المنتج' : 'بيانات المنتج'}</h1>
+        <h1>{editing ? t('form_edit') : t('form_new')}</h1>
       </header>
 
       <div className="name-row">
         <div className="photo-box">
           {preview ? (
             <>
-              <img src={preview} alt="صورة المنتج" />
+              <img src={preview} alt={t('photo_alt')} />
               <button
                 type="button"
                 className="photo-remove"
-                aria-label="إزالة الصورة"
+                aria-label={t('photo_remove')}
                 onClick={() => {
                   setPhoto(null);
+                  setReusePath(null);
                   setRemovePhoto(true);
                 }}
               >
@@ -169,7 +200,7 @@ export default function ProductForm() {
           ) : (
             <label htmlFor="form-photo" className="photo-add">
               <Icon name="camera" size={24} />
-              إضافة صورة
+              {t('photo_add')}
               <input
                 id="form-photo"
                 type="file"
@@ -185,30 +216,48 @@ export default function ProductForm() {
           )}
         </div>
         <label className="card field field-grow" htmlFor="name">
-          <span className="field-label">اسم المنتج</span>
+          <span className="field-label">{t('name_label')}</span>
           <input
             id="name"
             type="text"
             value={name}
             maxLength={120}
-            placeholder="مثال: حليب كامل الدسم 1 لتر"
+            placeholder={t('name_placeholder')}
             onChange={(event) => setName(event.target.value)}
           />
         </label>
       </div>
 
+      {suggestions.length > 0 && (
+        <div className="stack">
+          <span className="section-label">{t('suggest_title')}</span>
+          <div className="pills">
+            {suggestions.map((product) => (
+              <button key={product.id} type="button" className="pill" onClick={() => pickSuggestion(product)}>
+                {product.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {sameProduct.length > 0 && (
+        <div className="banner banner-sky" role="status">
+          {t('batch_note', { n: sameQuantity })}
+        </div>
+      )}
+
       <div className="stack">
-        <span className="section-label">الفئة</span>
-        <div className="pills" role="group" aria-label="الفئة">
-          {CATEGORIES.map((item) => (
+        <span className="section-label">{t('category_label')}</span>
+        <div className="pills" role="group" aria-label={t('category_label')}>
+          {CATEGORY_IDS.map((item) => (
             <button
-              key={item.id}
+              key={item}
               type="button"
-              aria-pressed={category === item.id}
-              className={`pill ${category === item.id ? 'active' : ''}`}
-              onClick={() => setCategory(item.id)}
+              aria-pressed={category === item}
+              className={`pill ${category === item ? 'active' : ''}`}
+              onClick={() => setCategory(item)}
             >
-              {item.label}
+              {categoryLabel(item)}
             </button>
           ))}
         </div>
@@ -220,7 +269,7 @@ export default function ProductForm() {
             <Icon name="calendar" size={22} />
           </span>
           <span className="field-col">
-            <span className="field-label">تاريخ الانتهاء</span>
+            <span className="field-label">{t('expiry_label')}</span>
             <input
               id="expiry"
               type="date"
@@ -232,42 +281,53 @@ export default function ProductForm() {
           </span>
         </label>
         <div className="tile tone-peach remaining">
-          <span className="small">المتبقي</span>
+          <span className="small">{t('remaining')}</span>
           <strong>{remainingText(expiry)}</strong>
         </div>
       </div>
 
-      <div className="pills quick" role="group" aria-label="تواريخ سريعة">
+      <div className="pills quick" role="group" aria-label={t('quick_aria')}>
         <button type="button" className="pill" onClick={() => setExpiry(addDays(today, 7))}>
-          بعد أسبوع
+          {t('quick_week')}
         </button>
         <button type="button" className="pill" onClick={() => setExpiry(addDays(today, 30))}>
-          بعد شهر
+          {t('quick_month')}
         </button>
         <button type="button" className="pill" onClick={() => setExpiry(addDays(today, 90))}>
-          بعد 3 أشهر
+          {t('quick_3months')}
         </button>
       </div>
 
       <div className="card stepper-row">
-        <span className="row-name">الكمية</span>
+        <span className="stack-xs">
+          <span className="row-name">{t('quantity')}</span>
+          <span className="muted small">{t('qty_hint')}</span>
+        </span>
         <span className="stepper">
           <button
             type="button"
             className="step-btn"
-            aria-label="إنقاص الكمية"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            aria-label={t('qty_dec')}
+            onClick={() => setQtyText(String(Math.max(1, quantity - 1)))}
           >
             <Icon name="minus" size={18} stroke={2.2} />
           </button>
-          <span className="step-value" aria-live="polite">
-            {quantity}
-          </span>
+          <input
+            className="step-input"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={999}
+            aria-label={t('quantity')}
+            value={qtyText}
+            onChange={(event) => setQtyText(event.target.value)}
+            onBlur={() => setQtyText(String(quantity))}
+          />
           <button
             type="button"
             className="step-btn step-btn-primary"
-            aria-label="زيادة الكمية"
-            onClick={() => setQuantity((q) => Math.min(999, q + 1))}
+            aria-label={t('qty_inc')}
+            onClick={() => setQtyText(String(Math.min(999, quantity + 1)))}
           >
             <Icon name="plus" size={18} stroke={2.2} />
           </button>
@@ -277,9 +337,9 @@ export default function ProductForm() {
       <div className="card remind-card">
         <div className="remind-title">
           <Icon name="bell" size={20} />
-          ذكّرني قبل الانتهاء بـ
+          {t('remind_title')}
         </div>
-        <div className="pills" role="group" aria-label="مواعيد التذكير">
+        <div className="pills" role="group" aria-label={t('remind_aria')}>
           {PRESET_DAYS.map((days) => (
             <button
               key={days}
@@ -289,7 +349,7 @@ export default function ProductForm() {
               onClick={() => toggleRemind(days)}
             >
               {effective.includes(days) && <Icon name="check" size={14} stroke={2.6} />}
-              {days === 0 ? 'يوم الانتهاء' : days === 1 ? 'يوم واحد' : `${days} أيام`}
+              {days === 0 ? t('remind_day0') : days === 1 ? t('remind_day1') : t('remind_dayn', { n: days })}
             </button>
           ))}
           {extras.map((days) => (
@@ -305,13 +365,13 @@ export default function ProductForm() {
             </button>
           ))}
           <button type="button" className="pill pill-dashed" onClick={() => setCustomOpen((open) => !open)}>
-            + مخصص
+            {t('remind_custom')}
           </button>
         </div>
         {customOpen && (
           <div className="custom-row">
             <label htmlFor="custom-days" className="small muted">
-              عدد الأيام قبل الانتهاء
+              {t('custom_label')}
             </label>
             <input
               id="custom-days"
@@ -323,15 +383,15 @@ export default function ProductForm() {
               onChange={(event) => setCustomValue(event.target.value)}
             />
             <button type="button" className="btn btn-soft btn-sm" onClick={addCustom}>
-              إضافة
+              {t('add')}
             </button>
           </div>
         )}
         {remind === null ? (
-          <span className="muted small">حسب قواعد التنبيه العامة في الإعدادات.</span>
+          <span className="muted small">{t('remind_global')}</span>
         ) : (
           <button type="button" className="link link-btn" onClick={() => setRemind(null)}>
-            العودة إلى القواعد العامة
+            {t('remind_back')}
           </button>
         )}
       </div>
@@ -346,7 +406,7 @@ export default function ProductForm() {
 
       <button type="button" className="btn btn-primary" onClick={() => void save()} disabled={saving}>
         <Icon name="check" size={20} stroke={2.2} />
-        {saving ? 'جارٍ الحفظ…' : 'حفظ المنتج'}
+        {saving ? t('saving') : t('save_product')}
       </button>
     </div>
   );
