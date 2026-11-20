@@ -16,7 +16,7 @@ function Splash() {
   return (
     <div className="splash" role="status" aria-label={t('loading')}>
       <span className="logo logo-lg">
-        <Icon name="calendarCheck" size={34} />
+        <Icon name="star" size={34} />
       </span>
     </div>
   );

@@ -169,11 +169,13 @@ test('phone: browse, add manually, details, alerts, profile', async ({ page }) =
   await expect(page.getByText('الإشعارات تعمل داخل تطبيق الهاتف فقط.')).toBeVisible();
 
   // switch to French and back
-  await page.getByRole('button', { name: 'Français' }).click();
+  await page.getByRole('button', { name: 'العربية' }).click();
+  await page.getByRole('option', { name: 'Français' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
   await expect(page.getByRole('link', { name: 'Produits' }).last()).toBeVisible();
   await page.screenshot({ path: `${SHOTS}/06b-profile-fr.png`, fullPage: true });
-  await page.getByRole('button', { name: 'العربية' }).click();
+  await page.getByRole('button', { name: 'Français' }).click();
+  await page.getByRole('option', { name: 'العربية' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 
   await page.goto('/#/scan');

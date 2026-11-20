@@ -41,7 +41,7 @@ export function AppShell() {
       <aside className="sidebar">
         <div className="brand">
           <span className="logo">
-            <Icon name="calendarCheck" />
+            <Icon name="star" />
           </span>
           <span className="brand-name">{t('app_name')}</span>
         </div>

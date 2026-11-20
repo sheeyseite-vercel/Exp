@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { userDisplayName } from '../components/AppShell';
 import { GoogleLogo, Icon, type IconName } from '../components/Icon';
-import { LangSwitch } from '../components/LangSwitch';
+import { LangMenu } from '../components/LangSwitch';
 import { ErrorBanner, Switch } from '../components/ui';
 import { t } from '../lib/i18n';
 import { sendTestNotification } from '../lib/notifications';
@@ -85,11 +85,11 @@ export default function Profile() {
     <div className="page page-narrow">
       <ErrorBanner message={error} />
 
-      <section className="card profile-hero">
-        <span className="avatar avatar-xl">{name.slice(0, 1).toUpperCase()}</span>
+      <section className="card pf-head">
+        <span className="avatar avatar-lg">{name.slice(0, 1).toUpperCase()}</span>
         {editing ? (
           <form
-            className="name-edit"
+            className="name-edit pf-id"
             onSubmit={(event) => {
               event.preventDefault();
               void saveName();
@@ -125,45 +125,61 @@ export default function Profile() {
           </form>
         ) : (
           <>
-            <span className="profile-name">
+            <span className="pf-id">
               <strong>{name}</strong>
-              <button
-                type="button"
-                className="round-btn round-btn-ghost round-btn-sm"
-                aria-label={t('profile_edit_name')}
-                onClick={() => {
-                  setDraft(name);
-                  setEditing(true);
-                }}
-              >
-                <Icon name="pencil" size={18} />
-              </button>
+              <span className="muted small ltr">{user?.email}</span>
+              <span className="chip chip-mint chip-icon pf-chip">
+                <GoogleLogo size={14} />
+                Google
+              </span>
             </span>
-            <span className="muted small ltr">{user?.email}</span>
-            <span className="chip chip-mint chip-icon">
-              <GoogleLogo size={14} />
-              Google
-            </span>
+            <button
+              type="button"
+              className="round-btn pf-edit"
+              aria-label={t('profile_edit_name')}
+              onClick={() => {
+                setDraft(name);
+                setEditing(true);
+              }}
+            >
+              <Icon name="pencil" size={18} />
+            </button>
           </>
         )}
-        <div className="profile-stats">
-          <span>
-            <strong>{products.length}</strong>
-            <span className="muted small">{t('stat_tracked')}</span>
-          </span>
-          <span>
-            <strong>{consumedCount}</strong>
-            <span className="muted small">{t('stat_consumed')}</span>
-          </span>
-        </div>
       </section>
 
-      <span className="section-label">{t('profile_language')}</span>
+      <div className="pf-stats">
+        <div className="card pf-stat">
+          <span className="pf-stat-icon tone-sky">
+            <Icon name="cube" size={20} />
+          </span>
+          <strong>{products.length}</strong>
+          <span className="muted small">{t('stat_tracked')}</span>
+        </div>
+        <div className="card pf-stat">
+          <span className="pf-stat-icon tone-mint">
+            <Icon name="check" size={20} stroke={2.2} />
+          </span>
+          <strong>{consumedCount}</strong>
+          <span className="muted small">{t('stat_consumed')}</span>
+        </div>
+      </div>
+
       <div className="card set-card">
         <SettingRow icon="globe" title={t('profile_language')}>
-          <span className="grow" />
+          <LangMenu />
         </SettingRow>
-        <LangSwitch tone="dark" />
+        <SettingRow icon="bell" title={t('test_title')} hint={t('test_hint')}>
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => void runTest()} disabled={testing}>
+            <Icon name="send" size={16} stroke={2} />
+            {t('test_btn')}
+          </button>
+        </SettingRow>
+        {testNote && (
+          <div className={`banner ${testNote.ok ? 'banner-mint' : 'banner-peach'}`} role="status">
+            {testNote.text}
+          </div>
+        )}
       </div>
 
       <span className="section-label">{t('profile_data')}</span>
@@ -180,21 +196,6 @@ export default function Profile() {
             onChange={(value) => void updateSettings({ auto_delete_expired: value })}
           />
         </SettingRow>
-      </div>
-
-      <span className="section-label">{t('profile_notifications')}</span>
-      <div className="card set-card">
-        <SettingRow icon="bell" title={t('test_title')} hint={t('test_hint')}>
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => void runTest()} disabled={testing}>
-            <Icon name="send" size={16} stroke={2} />
-            {t('test_btn')}
-          </button>
-        </SettingRow>
-        {testNote && (
-          <div className={`banner ${testNote.ok ? 'banner-mint' : 'banner-peach'}`} role="status">
-            {testNote.text}
-          </div>
-        )}
       </div>
 
       <button type="button" className="btn btn-danger-soft" onClick={() => void signOut()}>

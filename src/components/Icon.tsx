@@ -27,7 +27,9 @@ export type IconName =
   | 'refresh'
   | 'send'
   | 'layers'
-  | 'cloud';
+  | 'cloud'
+  | 'star'
+  | 'chevronDown';
 
 const PATHS: Record<IconName, ReactNode> = {
   home: (
@@ -112,6 +114,8 @@ const PATHS: Record<IconName, ReactNode> = {
   refresh: <path d="M20 11a8 8 0 0 0-14.3-4.5L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.3 4.5l1.7-2M20 20v-4.5h-4.5" />,
   send: <path d="M20.5 3.5 3.5 10.8l6.3 2.4 2.4 6.3zM9.8 13.2l5-5" />,
   layers: <path d="m12 3.5 9 4.5-9 4.5L3 8zM3 12l9 4.5 9-4.5M3 16l9 4.5 9-4.5" />,
+  star: <path fill="currentColor" stroke="none" d="M12 2.2C12.8 2.2 13.1 2.9 13.3 4C13.9 8 16 10.4 20 10.9C21.1 11.1 21.8 11.4 21.8 12C21.8 12.6 21.1 12.9 20 13.1C16 13.6 13.9 16 13.3 20C13.1 21.1 12.8 21.8 12 21.8C11.2 21.8 10.9 21.1 10.7 20C10.1 16 8 13.6 4 13.1C2.9 12.9 2.2 12.6 2.2 12C2.2 11.4 2.9 11.1 4 10.9C8 10.4 10.1 8 10.7 4C10.9 2.9 11.2 2.2 12 2.2Z" />,
+  chevronDown: <path d="m6 9.5 6 6 6-6" />,
   cloud: <path d="M7 18.5a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 9.5a4.5 4.5 0 0 1-.5 9z" />,
 };
 

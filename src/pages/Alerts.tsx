@@ -198,7 +198,7 @@ export default function Alerts() {
       <span className="section-label">{t('preview_title')}</span>
       <div className="card notif-preview">
         <span className="logo logo-sm">
-          <Icon name="calendarCheck" size={22} />
+          <Icon name="star" size={22} />
         </span>
         <span className="notif-text">
           <span className="notif-top">

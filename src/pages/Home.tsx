@@ -18,14 +18,16 @@ export default function Home() {
       <span className="muted small">{formatToday(new Date())}</span>
 
       <section className="welcome card">
-        <span className="logo logo-lg">
-          <Icon name="calendarCheck" size={34} />
-        </span>
-        <h1>{t('home_title')}</h1>
-        <p className="muted">{t('home_text')}</p>
+        <div className="welcome-top">
+          <span className="logo">
+            <Icon name="star" size={26} />
+          </span>
+          <h1>{t('home_title')}</h1>
+        </div>
+        <p>{t('home_text')}</p>
         <div className="welcome-actions">
           <Link to="/scan" className="btn btn-primary">
-            <Icon name="plus" size={20} stroke={2.2} />
+            <Icon name="plus" size={18} stroke={2.2} />
             {t('home_cta')}
           </Link>
           <Link to="/products" className="btn btn-soft">
