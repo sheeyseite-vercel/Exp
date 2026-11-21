@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import { LogoGlyph } from './LogoGlyph';
 import { t } from '../lib/i18n';
 import { useData } from '../state/DataProvider';
 import { Icon, type IconName } from './Icon';
@@ -41,7 +42,7 @@ export function AppShell() {
       <aside className="sidebar">
         <div className="brand">
           <span className="logo">
-            <Icon name="star" />
+            <LogoGlyph />
           </span>
           <span className="brand-name">{t('app_name')}</span>
         </div>

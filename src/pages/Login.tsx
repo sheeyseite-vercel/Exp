@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { GoogleLogo, Icon } from '../components/Icon';
+import { LogoGlyph } from '../components/LogoGlyph';
+import { GoogleLogo } from '../components/Icon';
 import { t } from '../lib/i18n';
 import { useData } from '../state/DataProvider';
 
@@ -21,7 +22,7 @@ export default function Login() {
       <div className="login-inner">
         <div className="brand">
           <span className="logo">
-            <Icon name="star" />
+            <LogoGlyph />
           </span>
           <span className="brand-name">{t('app_name')}</span>
         </div>

@@ -2328,3 +2328,17 @@ html[dir='ltr'] .rtl-flip {
 .notif-badge.urgent {
   background: #f0635f;
 }
+
+/* Expired mark: white tile, black glyph */
+.logo {
+  background: #fff;
+  color: #111;
+  border: 1px solid var(--line);
+}
+.logo-glyph {
+  width: 62%;
+  aspect-ratio: 1676 / 1455;
+  background: #111;
+  -webkit-mask: url('./assets/logo-mask.png') center / contain no-repeat;
+  mask: url('./assets/logo-mask.png') center / contain no-repeat;
+}

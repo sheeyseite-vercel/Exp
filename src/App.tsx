@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { LogoGlyph } from './components/LogoGlyph';
 import { AppShell } from './components/AppShell';
-import { Icon } from './components/Icon';
 import Alerts from './pages/Alerts';
 import Details from './pages/Details';
 import Home from './pages/Home';
@@ -16,7 +16,7 @@ function Splash() {
   return (
     <div className="splash" role="status" aria-label={t('loading')}>
       <span className="logo logo-lg">
-        <Icon name="star" size={34} />
+        <LogoGlyph />
       </span>
     </div>
   );
