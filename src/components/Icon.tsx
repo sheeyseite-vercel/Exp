@@ -29,9 +29,27 @@ export type IconName =
   | 'layers'
   | 'cloud'
   | 'star'
-  | 'chevronDown';
+  | 'chevronDown'
+  | 'cart'
+  | 'download'
+  | 'moon';
 
 const PATHS: Record<IconName, ReactNode> = {
+  cart: (
+    <>
+      <path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.1L20 8H6.2" />
+      <circle cx="9.5" cy="19.5" r="1.3" />
+      <circle cx="17" cy="19.5" r="1.3" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 4v11" />
+      <path d="m7.5 11 4.5 4.5 4.5-4.5" />
+      <path d="M5 19h14" />
+    </>
+  ),
+  moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
   home: (
     <>
       <path d="M3 11.5 12 4l9 7.5" />

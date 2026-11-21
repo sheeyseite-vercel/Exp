@@ -18,6 +18,7 @@ import android.util.Base64;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Iterator;
+import org.json.JSONException;
 import android.os.Build;
 import android.widget.RemoteViews;
 
@@ -72,10 +73,67 @@ final class Notifier {
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setAutoCancel(true)
                 .setContentIntent(tap);
+        org.json.JSONObject actions = item.optJSONObject("actions");
+        String productId = item.optString("productId");
+        if (actions != null && !productId.isEmpty()) {
+            b.addAction(0, actions.optString("used"), actionIntent(ctx, id * 10 + 1, "used", productId, id, item));
+            b.addAction(0, actions.optString("snooze"), actionIntent(ctx, id * 10 + 2, "snooze", productId, id, item));
+        }
         try {
             NotificationManagerCompat.from(ctx).notify(id, b.build());
         } catch (SecurityException ignored) {
             // notification permission not granted
+        }
+    }
+
+    private static PendingIntent actionIntent(Context ctx, int code, String act, String productId, int nid, JSONObject item) {
+        Intent i = new Intent(ctx, ActionReceiver.class);
+        i.setAction("com.salahiyati.app.ACTION_" + act);
+        i.putExtra("act", act);
+        i.putExtra("productId", productId);
+        i.putExtra("nid", nid);
+        i.putExtra("item", item.toString());
+        return PendingIntent.getBroadcast(ctx, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    private static final String ACTIONS_PREFS = "expired_actions";
+
+    static void queueAction(Context ctx, String productId, String action) {
+        SharedPreferences sp = ctx.getSharedPreferences(ACTIONS_PREFS, Context.MODE_PRIVATE);
+        try {
+            JSONArray list = new JSONArray(sp.getString("queue", "[]"));
+            list.put(new JSONObject().put("productId", productId).put("action", action));
+            sp.edit().putString("queue", list.toString()).apply();
+        } catch (JSONException ignored) {
+        }
+    }
+
+    static JSONArray takeActions(Context ctx) {
+        SharedPreferences sp = ctx.getSharedPreferences(ACTIONS_PREFS, Context.MODE_PRIVATE);
+        try {
+            JSONArray list = new JSONArray(sp.getString("queue", "[]"));
+            sp.edit().remove("queue").apply();
+            return list;
+        } catch (JSONException e) {
+            return new JSONArray();
+        }
+    }
+
+    /** Shows the same reminder again in 24 hours. */
+    static void snooze(Context ctx, String raw) {
+        try {
+            JSONObject item = new JSONObject(raw);
+            int id = 1_000_000 + (item.optInt("id") % 100_000);
+            item.put("id", id);
+            long at = System.currentTimeMillis() + 24L * 60 * 60 * 1000;
+            item.put("at", at);
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            if (am == null) return;
+            PendingIntent pi = alarmIntent(ctx, id, item, true);
+            boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
+            if (exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+            else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi);
+        } catch (Exception ignored) {
         }
     }
 

@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { userDisplayName } from '../components/AppShell';
 import { GoogleLogo, Icon, type IconName } from '../components/Icon';
 import { LangMenu } from '../components/LangSwitch';
 import { ErrorBanner, Switch } from '../components/ui';
-import { t } from '../lib/i18n';
+import { t, type TKey } from '../lib/i18n';
+import { exportProducts } from '../lib/export';
 import { sendTestNotification } from '../lib/notifications';
+import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { useData } from '../state/DataProvider';
 
 function syncText(lastSync: Date | null): string {
@@ -38,6 +41,7 @@ export default function Profile() {
     user,
     products,
     consumedCount,
+    history,
     settings,
     lastSync,
     error,
@@ -48,6 +52,11 @@ export default function Profile() {
     updateDisplayName,
   } = useData();
   const name = userDisplayName(user);
+  const theme = useTheme();
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+  const thisMonth = history.filter((p) => p.consumed_at && new Date(p.consumed_at).getTime() >= monthStart);
+  const discardedMonth = thisMonth.filter((p) => p.outcome === 'discarded').length;
+  const usedMonth = thisMonth.length - discardedMonth;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -63,6 +72,14 @@ export default function Profile() {
       setEditing(false);
     } catch {
       setNameError(t('profile_name_fail'));
+    }
+  }
+
+  async function runExport() {
+    try {
+      await exportProducts([...products, ...history]);
+    } catch {
+      setTestNote({ ok: false, text: t('export_fail') });
     }
   }
 
@@ -165,9 +182,42 @@ export default function Profile() {
         </div>
       </div>
 
+      <div className="card pf-month">
+        <span className="section-label">{t('stats_month')}</span>
+        <div className="pf-month-row">
+          <span>
+            <strong>{usedMonth}</strong> {t('stat_used')}
+          </span>
+          <span>
+            <strong>{discardedMonth}</strong> {t('stat_discarded')}
+          </span>
+        </div>
+      </div>
+
+      <Link to="/shopping" className="card set-card set-link">
+        <SettingRow icon="cart" title={t('shop_title')} hint={t('shop_hint')}>
+          <Icon name="chevronLeft" size={18} />
+        </SettingRow>
+      </Link>
+
       <div className="card set-card">
         <SettingRow icon="globe" title={t('profile_language')}>
           <LangMenu />
+        </SettingRow>
+        <SettingRow icon="moon" title={t('theme_title')}>
+          <div className="seg" role="group" aria-label={t('theme_title')}>
+            {(['system', 'light', 'dark'] as Theme[]).map((item) => (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={theme === item}
+                className={theme === item ? 'on' : ''}
+                onClick={() => setTheme(item)}
+              >
+                {t(`theme_${item}` as TKey)}
+              </button>
+            ))}
+          </div>
         </SettingRow>
         <SettingRow icon="bell" title={t('test_title')} hint={t('test_hint')}>
           <button type="button" className="btn btn-primary btn-sm" onClick={() => void runTest()} disabled={testing}>
@@ -187,6 +237,11 @@ export default function Profile() {
         <SettingRow icon="refresh" title={t('sync_title')} hint={loading ? t('sync_busy') : syncText(lastSync)}>
           <button type="button" className="btn btn-soft btn-sm" onClick={() => void refresh()} disabled={loading}>
             <Icon name="refresh" size={16} stroke={2} />
+          </button>
+        </SettingRow>
+        <SettingRow icon="download" title={t('export_title')} hint={t('export_hint')}>
+          <button type="button" className="btn btn-soft btn-sm" onClick={() => void runExport()}>
+            {t('export_btn')}
           </button>
         </SettingRow>
         <SettingRow icon="trash" title={t('auto_delete')} hint={t('auto_delete_hint')}>

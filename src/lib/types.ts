@@ -1,5 +1,16 @@
 export type Category = 'dairy' | 'meat' | 'canned' | 'bakery' | 'other';
 
+export type Location = 'fridge' | 'freezer' | 'pantry' | 'other';
+export const LOCATIONS: Location[] = ['fridge', 'freezer', 'pantry', 'other'];
+export type Outcome = 'used' | 'discarded';
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  done: boolean;
+  created_at: string;
+}
+
 export interface Product {
   id: string;
   user_id: string;
@@ -13,6 +24,8 @@ export interface Product {
   /** Days before expiry to notify (0 = on the expiry day). null = use the user's default rules. */
   remind_days: number[] | null;
   consumed_at: string | null;
+  location: Location;
+  outcome: Outcome | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +37,7 @@ export interface ProductInput {
   quantity: number;
   barcode: string | null;
   remind_days: number[] | null;
+  location: Location;
   photo_path?: string | null;
 }
 
@@ -35,6 +49,12 @@ export interface Settings {
   /** HH:MM or HH:MM:SS */
   notify_time: string;
   auto_delete_expired: boolean;
+  /** One combined notification per day instead of one per product. */
+  daily_digest: boolean;
+  /** Weekly summary of what expires in the coming week. */
+  weekly_digest: boolean;
+  /** 0 = Sunday … 6 = Saturday */
+  weekly_day: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -43,4 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   custom_days: 14,
   notify_time: '09:00',
   auto_delete_expired: false,
+  daily_digest: false,
+  weekly_digest: false,
+  weekly_day: 0,
 };

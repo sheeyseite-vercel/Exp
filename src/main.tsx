@@ -7,6 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
 import { useLang } from './lib/i18n';
+import { applyTheme } from './lib/theme';
 import './styles.css';
 import { DataProvider } from './state/DataProvider';
 
@@ -15,6 +16,8 @@ function LocalizedApp() {
   const lang = useLang();
   return <App key={lang} />;
 }
+
+applyTheme();
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

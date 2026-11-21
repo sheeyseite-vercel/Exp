@@ -16,6 +16,8 @@ function product(over: Partial<Product>): Product {
     barcode: null,
     remind_days: null,
     consumed_at: null,
+    location: 'fridge',
+    outcome: null,
     created_at: '2026-11-10T10:00:00Z',
     updated_at: '2026-11-10T10:00:00Z',
     ...over,
@@ -95,5 +97,28 @@ describe('planner', () => {
       ['x2', 21],
     ]);
     expect(plan[1].body).toContain('×48');
+  });
+
+  it('merges reminders that fall on the same minute into one daily notification', () => {
+    const settings: Settings = { ...DEFAULT_SETTINGS, daily_digest: true, default_remind_days: [1] };
+    const plan = planNotifications(
+      [product({ id: 'a', name: 'A' }), product({ id: 'b', name: 'B' }), product({ id: 'c', name: 'C', expiry_date: '2026-11-30' })],
+      settings,
+      now,
+    );
+    expect(plan).toHaveLength(2);
+    expect(plan[0].kind).toBe('daily');
+    expect(plan[0].productId).toBe('');
+    expect(plan[1].kind).toBe('product');
+  });
+
+  it('adds a weekly summary on the chosen weekday', () => {
+    // 2026-11-17 is a Tuesday; ask for Sunday (0) -> next is Nov 22.
+    const settings: Settings = { ...DEFAULT_SETTINGS, weekly_digest: true, weekly_day: 0, default_remind_days: [] };
+    const plan = planNotifications([product({ expiry_date: '2026-11-25' })], settings, now);
+    const weekly = plan.filter((p) => p.kind === 'weekly');
+    expect(weekly).toHaveLength(1);
+    expect(weekly[0].at.getDate()).toBe(22);
+    expect(weekly[0].at.getDay()).toBe(0);
   });
 });

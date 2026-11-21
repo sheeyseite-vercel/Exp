@@ -15,9 +15,9 @@ import type { Session, User } from '@supabase/supabase-js';
 import { AUTH_REDIRECT_NATIVE, PHOTO_BUCKET } from '../lib/config';
 import { daysUntil } from '../lib/dates';
 import { t } from '../lib/i18n';
-import { syncNotifications, type PermissionState } from '../lib/notifications';
+import { syncNotifications, takeNotifierActions, type PermissionState } from '../lib/notifications';
 import { isNative, supabase } from '../lib/supabase';
-import { DEFAULT_SETTINGS, type Product, type ProductInput, type Settings } from '../lib/types';
+import { DEFAULT_SETTINGS, type Outcome, type Product, type ProductInput, type Settings } from '../lib/types';
 
 interface DataContextValue {
   authReady: boolean;
@@ -27,6 +27,8 @@ interface DataContextValue {
   /** Products that have not been marked as consumed. */
   products: Product[];
   consumedCount: number;
+  /** Products already used up or thrown away. */
+  history: Product[];
   settings: Settings;
   loading: boolean;
   loaded: boolean;
@@ -38,7 +40,7 @@ interface DataContextValue {
   refresh: () => Promise<void>;
   saveProduct: (input: ProductInput, photo?: Blob | null, id?: string) => Promise<Product>;
   removeProduct: (id: string) => Promise<void>;
-  consumeProduct: (id: string) => Promise<void>;
+  consumeProduct: (id: string, outcome?: Outcome) => Promise<void>;
   updateSettings: (patch: Partial<Settings>) => Promise<void>;
   updateDisplayName: (name: string) => Promise<void>;
 }
@@ -249,6 +251,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         quantity: input.quantity,
         barcode: input.barcode,
         remind_days: input.remind_days,
+        location: input.location,
         photo_path: photoPath,
       };
 
@@ -278,12 +281,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setAll((current) => current.filter((p) => p.id !== id));
   }, []);
 
-  const consumeProduct = useCallback(async (id: string) => {
+  const consumeProduct = useCallback(async (id: string, outcome: Outcome = 'used') => {
     const consumedAt = new Date().toISOString();
-    const { error: updateError } = await supabase.from('products').update({ consumed_at: consumedAt }).eq('id', id);
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({ consumed_at: consumedAt, outcome })
+      .eq('id', id);
     if (updateError) throw updateError;
-    setAll((current) => current.map((p) => (p.id === id ? { ...p, consumed_at: consumedAt } : p)));
+    setAll((current) => current.map((p) => (p.id === id ? { ...p, consumed_at: consumedAt, outcome } : p)));
   }, []);
+
+  // --- Actions tapped inside notifications (applied when the app is next open) -----------------
+  useEffect(() => {
+    if (!isNative || !loaded) return;
+    let alive = true;
+    const drain = async () => {
+      const actions = await takeNotifierActions();
+      for (const action of actions) {
+        if (!alive) return;
+        if (allRef.current.some((p) => p.id === action.productId && !p.consumed_at)) {
+          await consumeProduct(action.productId, action.action).catch(() => undefined);
+        }
+      }
+    };
+    void drain();
+    let handle: PluginListenerHandle | undefined;
+    void CapApp.addListener('resume', () => void drain()).then((h) => (handle = h));
+    return () => {
+      alive = false;
+      void handle?.remove();
+    };
+  }, [loaded, consumeProduct]);
 
   const updateSettings = useCallback(
     async (patch: Partial<Settings>) => {
@@ -298,6 +326,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
           custom_days: next.custom_days,
           notify_time: next.notify_time,
           auto_delete_expired: next.auto_delete_expired,
+          daily_digest: next.daily_digest,
+          weekly_digest: next.weekly_digest,
+          weekly_day: next.weekly_day,
         },
         { onConflict: 'user_id' },
       );
@@ -320,6 +351,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       authError,
       products: all.filter((p) => !p.consumed_at),
       consumedCount: all.filter((p) => p.consumed_at).length,
+      history: all.filter((p) => p.consumed_at),
       settings,
       loading,
       loaded,

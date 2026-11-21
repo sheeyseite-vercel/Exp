@@ -99,7 +99,18 @@ export async function syncNotifications(products: Product[], settings: Settings)
       urgent: item.urgent,
       channel: t('notif_channel'),
       productId: item.productId,
+      actions: item.productId ? { used: t('act_used'), snooze: t('act_snooze') } : undefined,
     })),
   });
   return { scheduled: plan.length, permission: 'granted' };
+}
+
+/** Actions the person tapped inside notifications while the app was closed. */
+export async function takeNotifierActions(): Promise<{ productId: string; action: 'used' | 'discarded' }[]> {
+  if (!Capacitor.isNativePlatform()) return [];
+  try {
+    return (await ExpiryNotifier.takeActions()).actions;
+  } catch {
+    return [];
+  }
 }

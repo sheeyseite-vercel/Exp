@@ -9,6 +9,7 @@ import ProductForm from './pages/ProductForm';
 import Products from './pages/Products';
 import Profile from './pages/Profile';
 import Scan from './pages/Scan';
+import Shopping from './pages/Shopping';
 import { t } from './lib/i18n';
 import { useData } from './state/DataProvider';
 
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="scan" element={<Scan />} />
+      <Route path="shopping" element={<Shopping />} />
       <Route path="product/new" element={<ProductForm />} />
       <Route path="product/:id" element={<Details />} />
       <Route path="product/:id/edit" element={<ProductForm />} />

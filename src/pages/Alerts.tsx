@@ -4,7 +4,7 @@ import { LogoGlyph } from '../components/LogoGlyph';
 import { TimeEntry } from '../components/TimeEntry';
 import { ErrorBanner, Switch } from '../components/ui';
 import { addDays, daysPhrase, daysUntil, toISO } from '../lib/dates';
-import { t, type TKey } from '../lib/i18n';
+import { getLang, t, WEEKDAYS, type TKey } from '../lib/i18n';
 import { exactAlarmState, openExactAlarmSettings, type ExactAlarmState } from '../lib/notifications';
 import { notificationBody, reminderCard } from '../lib/planner';
 import { useData } from '../state/DataProvider';
@@ -187,6 +187,49 @@ export default function Alerts() {
           disabled={!enabled}
           onChange={(value) => void updateSettings({ notify_time: `${value}:00` })}
         />
+      </div>
+
+      <div className={`stack ${enabled ? '' : 'is-off'}`}>
+        <div className="flat digest-row">
+          <span className="stack-xs">
+            <span className="row-name">{t('digest_daily_t')}</span>
+            <span className="muted small">{t('digest_daily_d')}</span>
+          </span>
+          <Switch
+            checked={settings.daily_digest}
+            label={t('digest_daily_t')}
+            onChange={(value) => void updateSettings({ daily_digest: value })}
+          />
+        </div>
+        <div className="flat digest-row">
+          <span className="stack-xs">
+            <span className="row-name">{t('digest_weekly_t')}</span>
+            <span className="muted small">{t('digest_weekly_d')}</span>
+          </span>
+          <Switch
+            checked={settings.weekly_digest}
+            label={t('digest_weekly_t')}
+            onChange={(value) => void updateSettings({ weekly_digest: value })}
+          />
+        </div>
+        {settings.weekly_digest && (
+          <div className="stack-xs">
+            <span className="muted small">{t('digest_day')}</span>
+            <div className="pills" role="group" aria-label={t('digest_day')}>
+              {WEEKDAYS[getLang()].map((name, day) => (
+                <button
+                  key={day}
+                  type="button"
+                  aria-pressed={settings.weekly_day === day}
+                  className={`pill ${settings.weekly_day === day ? 'active' : ''}`}
+                  onClick={() => void updateSettings({ weekly_day: day })}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <span className="section-label">{t('preview_title')}</span>

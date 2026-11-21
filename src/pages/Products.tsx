@@ -5,7 +5,7 @@ import { Empty, ErrorBanner, ProductRow, StatusChip, Thumb, toneOf } from '../co
 import { daysUntil, expiryLine, statusOf } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
 import { normalizeText, productKey } from '../lib/text';
-import type { Product } from '../lib/types';
+import { LOCATIONS, type Location, type Product } from '../lib/types';
 import { useData } from '../state/DataProvider';
 
 type Filter = 'all' | 'soon' | 'expired' | 'fresh';
@@ -47,6 +47,7 @@ export default function Products() {
   const { products, loaded, error } = useData();
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState('');
+  const [place, setPlace] = useState<Location | 'all'>('all');
 
   const requested = params.get('f') as Filter | null;
   const filter: Filter = requested && FILTERS.includes(requested) ? requested : 'all';
@@ -68,6 +69,7 @@ export default function Products() {
     if (filter === 'soon' && !(days >= 0 && days <= 7)) return false;
     if (filter === 'expired' && days >= 0) return false;
     if (filter === 'fresh' && days <= 7) return false;
+    if (place !== 'all' && (product.location ?? 'other') !== place) return false;
     return needle === '' || normalizeText(product.name).includes(needle);
   });
 
@@ -80,7 +82,7 @@ export default function Products() {
     }
     return [...map.values()];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, filter, query]);
+  }, [products, filter, query, place]);
 
   return (
     <div className="page page-narrow">
@@ -110,6 +112,22 @@ export default function Products() {
           </button>
         ))}
       </div>
+
+      {rows.length > 0 && (
+        <div className="filters" role="group" aria-label={t('loc_label')}>
+          {(['all', ...LOCATIONS] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              aria-pressed={place === item}
+              className={`fchip ${place === item ? 'active' : ''}`}
+              onClick={() => setPlace(item)}
+            >
+              {item === 'all' ? t('loc_all') : t(`loc_${item}` as TKey)}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="list">
         {groups.map((group) =>

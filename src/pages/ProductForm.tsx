@@ -3,12 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { BackButton } from '../components/ui';
 import { CATEGORY_IDS, categoryLabel } from '../lib/categories';
-import { addDays, daysPhrase, daysUntil, isValidISO, toISO } from '../lib/dates';
+import { readDateFromPhoto } from '../lib/ocr';
+import { addDays, daysPhrase, daysUntil, formatFull, isValidISO, toISO } from '../lib/dates';
 import { getDraft, setDraft } from '../lib/draft';
-import { t } from '../lib/i18n';
+import { t, type TKey } from '../lib/i18n';
 import { compressImage } from '../lib/image';
 import { normalizeText, productKey } from '../lib/text';
-import type { Category } from '../lib/types';
+import { LOCATIONS, type Category, type Location } from '../lib/types';
 import { useData } from '../state/DataProvider';
 import { usePhotoUrl } from '../state/usePhotoUrl';
 
@@ -37,6 +38,9 @@ export default function ProductForm() {
 
   const [name, setName] = useState(draft?.name ?? '');
   const [category, setCategory] = useState<Category>(draft?.category ?? 'other');
+  const [location, setLocation] = useState<Location>('fridge');
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const [ocrNote, setOcrNote] = useState<string | null>(null);
   const [expiry, setExpiry] = useState(draft?.expiry ?? '');
   const [qtyText, setQtyText] = useState('1');
   const [reusePath, setReusePath] = useState<string | null>(null);
@@ -55,6 +59,7 @@ export default function ProductForm() {
     if (!editing || initialised || !existing) return;
     setName(existing.name);
     setCategory(existing.category);
+    setLocation(existing.location ?? 'fridge');
     setExpiry(existing.expiry_date);
     setQtyText(String(existing.quantity));
     setRemind(existing.remind_days);
@@ -96,6 +101,7 @@ export default function ProductForm() {
   function pickSuggestion(product: (typeof products)[number]) {
     setName(product.name);
     setCategory(product.category);
+    setLocation(product.location ?? 'fridge');
     setBarcode(product.barcode);
     if (!photo && product.photo_path) {
       setReusePath(product.photo_path);
@@ -151,6 +157,7 @@ export default function ProductForm() {
         {
           name,
           category,
+          location,
           expiry_date: expiry,
           quantity,
           barcode,
@@ -228,6 +235,36 @@ export default function ProductForm() {
         </label>
       </div>
 
+      {photo && (
+        <div className="stack">
+          <button
+            type="button"
+            className="btn btn-soft"
+            disabled={ocrBusy}
+            onClick={async () => {
+              setOcrBusy(true);
+              setOcrNote(null);
+              const result = await readDateFromPhoto(photo);
+              setOcrBusy(false);
+              if (result.status === 'found') {
+                setExpiry(result.iso);
+                setOcrNote(t('ocr_found', { date: formatFull(result.iso) }));
+              } else {
+                setOcrNote(result.status === 'unsupported' ? t('ocr_web') : t('ocr_none'));
+              }
+            }}
+          >
+            <Icon name="scan" size={18} />
+            {ocrBusy ? t('ocr_busy') : t('ocr_btn')}
+          </button>
+          {ocrNote && (
+            <span className="muted small" role="status">
+              {ocrNote}
+            </span>
+          )}
+        </div>
+      )}
+
       {suggestions.length > 0 && (
         <div className="stack">
           <span className="section-label">{t('suggest_title')}</span>
@@ -258,6 +295,23 @@ export default function ProductForm() {
               onClick={() => setCategory(item)}
             >
               {categoryLabel(item)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="stack">
+        <span className="section-label">{t('loc_label')}</span>
+        <div className="pills" role="group" aria-label={t('loc_label')}>
+          {LOCATIONS.map((item) => (
+            <button
+              key={item}
+              type="button"
+              aria-pressed={location === item}
+              className={`pill ${location === item ? 'active' : ''}`}
+              onClick={() => setLocation(item)}
+            >
+              {t(`loc_${item}` as TKey)}
             </button>
           ))}
         </div>

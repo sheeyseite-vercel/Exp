@@ -37,7 +37,8 @@ if (!xml.includes('com.google.mlkit.vision.DEPENDENCIES')) xml = xml.replace('</
 if (!xml.includes('android:launchMode')) xml = xml.replace('<activity', '<activity android:launchMode="singleTask"');
 
 // Branded notification: receivers for scheduled reminders and re-arming after reboot.
-const receivers = `        <receiver android:name=".ReminderReceiver" android:exported="false" />
+const receivers = `        <receiver android:name=".ActionReceiver" android:exported="false" />
+        <receiver android:name=".ReminderReceiver" android:exported="false" />
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -72,3 +73,12 @@ public class MainActivity extends BridgeActivity {
 `,
 );
 console.log('Native notifier installed');
+
+// On-device text recognition for reading dates from photos.
+const gradleFile = 'android/app/build.gradle';
+let gradle = readFileSync(gradleFile, 'utf8');
+if (!gradle.includes('mlkit:text-recognition')) {
+  gradle = gradle.replace(/dependencies\s*\{/, "dependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'");
+  writeFileSync(gradleFile, gradle);
+}
+console.log('Gradle patched');

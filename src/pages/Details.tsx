@@ -16,6 +16,7 @@ import {
 } from '../lib/dates';
 import { t } from '../lib/i18n';
 import { parseTime } from '../lib/planner';
+import { supabase } from '../lib/supabase';
 import { useData } from '../state/DataProvider';
 
 export default function Details() {
@@ -27,6 +28,12 @@ export default function Details() {
   const [error, setError] = useState<string | null>(null);
 
   const product = products.find((p) => p.id === id);
+  const [note, setNote] = useState<string | null>(null);
+
+  async function addToShopping(name: string) {
+    const { error: failure } = await supabase.from('shopping_items').insert({ name });
+    setNote(failure ? failure.message : t('shop_added'));
+  }
 
   if (!product) {
     return (
@@ -180,15 +187,36 @@ export default function Details() {
 
       <span className="grow" />
 
+      {note && (
+        <div className="banner banner-mint" role="status">
+          {note}
+        </div>
+      )}
+
       <div className="actions">
         <button
           type="button"
           className="btn btn-primary"
           disabled={busy}
-          onClick={() => void run(() => consumeProduct(product.id))}
+          onClick={() => void run(() => consumeProduct(product.id, 'used'))}
         >
           <Icon name="check" size={20} stroke={2.2} />
-          {t('consumed')}
+          {t('act_used')}
+        </button>
+        <button
+          type="button"
+          className="btn btn-soft"
+          disabled={busy}
+          onClick={() => void run(() => consumeProduct(product.id, 'discarded'))}
+        >
+          <Icon name="trash" size={20} />
+          {t('act_discard')}
+        </button>
+      </div>
+      <div className="actions">
+        <button type="button" className="btn btn-outline" disabled={busy} onClick={() => void addToShopping(product.name)}>
+          <Icon name="cart" size={20} />
+          {t('shop_add_from')}
         </button>
         <Link to={`/product/${product.id}/edit`} className="btn btn-outline">
           {t('edit')}
