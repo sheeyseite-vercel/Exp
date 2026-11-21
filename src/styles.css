@@ -2366,3 +2366,70 @@ html[dir='ltr'] .rtl-flip {
 .notif-badge .logo-glyph {
   width: 58%;
 }
+
+/* digital time entry */
+.time-block {
+  gap: 10px;
+}
+.time-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 16px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fff 0%, var(--primary-soft) 160%);
+  border: 1px solid var(--line);
+}
+.time-entry.is-off {
+  opacity: 0.5;
+}
+.time-digits {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.time-seg {
+  width: 92px;
+  height: 84px;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  text-align: center;
+  font: 800 48px/1 var(--font);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.time-seg:focus {
+  box-shadow: inset 0 0 0 2.5px var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+.time-colon {
+  font-size: 40px;
+  font-weight: 800;
+  color: #27be98;
+}
+.time-quick {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.time-chip {
+  border: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--muted);
+  font: 600 13px var(--font);
+  cursor: pointer;
+}
+.time-chip.on {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: none;
+}

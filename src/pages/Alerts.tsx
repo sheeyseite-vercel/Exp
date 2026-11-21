@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { LogoGlyph } from '../components/LogoGlyph';
+import { TimeEntry } from '../components/TimeEntry';
 import { ErrorBanner, Switch } from '../components/ui';
 import { addDays, daysPhrase, daysUntil, toISO } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
@@ -178,25 +179,15 @@ export default function Alerts() {
         </div>
       )}
 
-      <label className="flat time-row" htmlFor="notify-time">
-        <span className="time-label">
-          <Icon name="clock" size={20} />
-          {t('time_label')}
-        </span>
-        <span className="time-field">
-          <span className="time-value">{settings.notify_time.slice(0, 5)}</span>
-          <input
-            id="notify-time"
-            type="time"
-            className="time-input"
-            aria-label={t('time_label')}
-            value={settings.notify_time.slice(0, 5)}
-            onChange={(event) => {
-              if (event.target.value) void updateSettings({ notify_time: `${event.target.value}:00` });
-            }}
-          />
-        </span>
-      </label>
+      <div className="stack-xs time-block">
+        <span className="section-label">{t('time_label')}</span>
+        <TimeEntry
+          value={settings.notify_time}
+          label={t('time_label')}
+          disabled={!enabled}
+          onChange={(value) => void updateSettings({ notify_time: `${value}:00` })}
+        />
+      </div>
 
       <span className="section-label">{t('preview_title')}</span>
       <div className="card notif-preview">
