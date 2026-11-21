@@ -16,6 +16,7 @@ public class ExpiryNotifierPlugin extends Plugin {
             call.reject("items required");
             return;
         }
+        Notifier.saveImages(getContext(), call.getObject("images"));
         Notifier.scheduleAll(getContext(), items);
         call.resolve();
     }

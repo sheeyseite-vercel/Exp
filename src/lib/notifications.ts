@@ -3,6 +3,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { t } from './i18n';
 import { notificationBody, planNotifications, reminderCard } from './planner';
 import { ExpiryNotifier } from './expiryNotifier';
+import { notificationThumb } from './notifThumb';
 import { addDays, toISO } from './dates';
 import type { Product, Settings } from './types';
 
@@ -77,7 +78,17 @@ export async function syncNotifications(products: Product[], settings: Settings)
   }
   if (permission.display !== 'granted') return { scheduled: 0, permission: 'denied' };
 
+  const images: Record<string, string> = {};
+  const withPhoto = products.filter((p) => p.photo_path && plan.some((item) => item.productId === p.id));
+  await Promise.all(
+    withPhoto.map(async (p) => {
+      const thumb = await notificationThumb(p.photo_path as string);
+      if (thumb) images[p.id] = thumb;
+    }),
+  );
+
   await ExpiryNotifier.schedule({
+    images,
     items: plan.map((item) => ({
       id: item.id,
       at: item.at.getTime(),

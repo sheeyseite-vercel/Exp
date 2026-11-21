@@ -7,6 +7,17 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.RectF;
+import android.util.Base64;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Iterator;
 import android.os.Build;
 import android.widget.RemoteViews;
 
@@ -39,14 +50,12 @@ final class Notifier {
         String body = item.optString("body");
         String chip = item.optString("chip");
         int id = item.optInt("id");
+        String label = chip.isEmpty() ? title : title + " \u00b7 " + chip;
         RemoteViews small = new RemoteViews(ctx.getPackageName(), R.layout.notif_small);
-        small.setTextViewText(R.id.title, title);
+        small.setTextViewText(R.id.title, label);
         small.setTextViewText(R.id.body, body);
-
-        RemoteViews big = new RemoteViews(ctx.getPackageName(), R.layout.notif_big);
-        big.setTextViewText(R.id.title, title);
-        big.setTextViewText(R.id.body, body);
-        big.setTextViewText(R.id.chip, chip);
+        Bitmap photo = loadPhoto(ctx, item.optString("productId"));
+        if (photo != null) small.setImageViewBitmap(R.id.logo, photo);
 
         Intent open = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
         if (open != null) open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -58,7 +67,7 @@ final class Notifier {
                 .setContentText(body)
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(small)
-                .setCustomBigContentView(big)
+                .setCustomBigContentView(small)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setAutoCancel(true)
@@ -68,6 +77,40 @@ final class Notifier {
         } catch (SecurityException ignored) {
             // notification permission not granted
         }
+    }
+
+    private static File photoFile(Context ctx, String productId) {
+        return new File(ctx.getFilesDir(), "notif_" + productId.replaceAll("[^A-Za-z0-9_-]", "") + ".jpg");
+    }
+
+    static void saveImages(Context ctx, org.json.JSONObject images) {
+        File[] old = ctx.getFilesDir().listFiles((d, n) -> n.startsWith("notif_") && n.endsWith(".jpg"));
+        if (old != null) for (File f : old) f.delete();
+        if (images == null) return;
+        Iterator<String> keys = images.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            try (FileOutputStream out = new FileOutputStream(photoFile(ctx, key))) {
+                out.write(Base64.decode(images.getString(key), Base64.DEFAULT));
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private static Bitmap loadPhoto(Context ctx, String productId) {
+        if (productId == null || productId.isEmpty()) return null;
+        File f = photoFile(ctx, productId);
+        if (!f.exists()) return null;
+        Bitmap src = BitmapFactory.decodeFile(f.getAbsolutePath());
+        if (src == null) return null;
+        int px = 144;
+        Bitmap out = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(out);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        c.drawRoundRect(new RectF(0, 0, px, px), px * 0.28f, px * 0.28f, p);
+        p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        c.drawBitmap(Bitmap.createScaledBitmap(src, px, px, true), 0, 0, p);
+        return out;
     }
 
     private static PendingIntent alarmIntent(Context ctx, int id, JSONObject item, boolean create) {

@@ -13,7 +13,7 @@ export interface NotifierItem {
 }
 
 export interface ExpiryNotifierPlugin {
-  schedule(options: { items: NotifierItem[] }): Promise<void>;
+  schedule(options: { items: NotifierItem[]; images?: Record<string, string> }): Promise<void>;
   cancelAll(): Promise<void>;
   showNow(item: NotifierItem): Promise<void>;
 }

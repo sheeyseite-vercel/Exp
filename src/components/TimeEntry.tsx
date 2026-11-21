@@ -33,7 +33,11 @@ export function TimeEntry({ value, label, disabled, onChange }: Props) {
     onChange(`${pad(hours)}:${pad(minutes)}`);
   }
 
-  const digits = (raw: string) => raw.replace(/\D/g, '').slice(0, 2);
+  // A third typed digit starts a fresh entry instead of needing the old text to be selected.
+  const digits = (raw: string) => {
+    const only = raw.replace(/\D/g, '');
+    return only.length > 2 ? only.slice(-1) : only;
+  };
   const current = `${h}:${m}`;
 
   return (
@@ -46,7 +50,11 @@ export function TimeEntry({ value, label, disabled, onChange }: Props) {
           maxLength={2}
           disabled={disabled}
           value={hh}
-          onFocus={(event) => event.target.select()}
+          onFocus={(event) => {
+            const el = event.target;
+            window.setTimeout(() => el.setSelectionRange(el.value.length, el.value.length), 0);
+          }}
+          onContextMenu={(event) => event.preventDefault()}
           onChange={(event) => {
             const next = digits(event.target.value);
             setHh(next);
@@ -68,7 +76,11 @@ export function TimeEntry({ value, label, disabled, onChange }: Props) {
           maxLength={2}
           disabled={disabled}
           value={mm}
-          onFocus={(event) => event.target.select()}
+          onFocus={(event) => {
+            const el = event.target;
+            window.setTimeout(() => el.setSelectionRange(el.value.length, el.value.length), 0);
+          }}
+          onContextMenu={(event) => event.preventDefault()}
           onChange={(event) => {
             const next = digits(event.target.value);
             setMm(next);
