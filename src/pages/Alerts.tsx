@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { LogoGlyph } from '../components/LogoGlyph';
 import { ErrorBanner, Switch } from '../components/ui';
 import { addDays, daysPhrase, daysUntil, toISO } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
@@ -182,20 +183,26 @@ export default function Alerts() {
           <Icon name="clock" size={20} />
           {t('time_label')}
         </span>
-        <input
-          id="notify-time"
-          type="time"
-          className="time-input"
-          value={settings.notify_time.slice(0, 5)}
-          onChange={(event) => {
-            if (event.target.value) void updateSettings({ notify_time: `${event.target.value}:00` });
-          }}
-        />
+        <span className="time-field">
+          <span className="time-value">{settings.notify_time.slice(0, 5)}</span>
+          <input
+            id="notify-time"
+            type="time"
+            className="time-input"
+            aria-label={t('time_label')}
+            value={settings.notify_time.slice(0, 5)}
+            onChange={(event) => {
+              if (event.target.value) void updateSettings({ notify_time: `${event.target.value}:00` });
+            }}
+          />
+        </span>
       </label>
 
       <span className="section-label">{t('preview_title')}</span>
       <div className="card notif-preview">
-        <span className={`notif-badge${card.urgent ? ' urgent' : ''}`}>{card.badge}</span>
+        <span className="notif-badge">
+          <LogoGlyph />
+        </span>
         <span className="notif-text">
           <span className="notif-top">
             <span>{t('app_name')}</span>

@@ -37,23 +37,15 @@ final class Notifier {
         ensureChannel(ctx, item.optString("channel", "Expired"));
         String title = item.optString("title");
         String body = item.optString("body");
-        String badge = item.optString("badge");
         String chip = item.optString("chip");
-        boolean urgent = item.optBoolean("urgent", false);
         int id = item.optInt("id");
-
-        int badgeBg = urgent ? R.drawable.bg_badge_urgent : R.drawable.bg_badge;
         RemoteViews small = new RemoteViews(ctx.getPackageName(), R.layout.notif_small);
         small.setTextViewText(R.id.title, title);
         small.setTextViewText(R.id.body, body);
-        small.setTextViewText(R.id.badge, badge);
-        small.setInt(R.id.badge, "setBackgroundResource", badgeBg);
 
         RemoteViews big = new RemoteViews(ctx.getPackageName(), R.layout.notif_big);
         big.setTextViewText(R.id.title, title);
         big.setTextViewText(R.id.body, body);
-        big.setTextViewText(R.id.badge, badge);
-        big.setInt(R.id.badge, "setBackgroundResource", badgeBg);
         big.setTextViewText(R.id.chip, chip);
 
         Intent open = ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
@@ -62,7 +54,6 @@ final class Notifier {
 
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_expired)
-                .setColor(0xFF3B6FF0)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())

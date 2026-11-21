@@ -2314,17 +2314,6 @@ html[dir='ltr'] .rtl-flip {
   min-height: 0;
   padding: 14px 0;
 }
-.time-input {
-  background: none;
-  border: 0;
-  border-bottom: 2px dashed #27be98;
-  border-radius: 0;
-  padding: 2px 4px;
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ink);
-  direction: ltr;
-}
 .notif-badge.urgent {
   background: #f0635f;
 }
@@ -2341,4 +2330,39 @@ html[dir='ltr'] .rtl-flip {
   background: #111;
   -webkit-mask: url('./assets/logo-mask.png') center / contain no-repeat;
   mask: url('./assets/logo-mask.png') center / contain no-repeat;
+}
+
+/* time: readable value, native picker laid invisibly on top */
+.time-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 4px;
+  border-bottom: 2px dashed #27be98;
+}
+.time-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--ink);
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+.time-field .time-input {
+  position: absolute;
+  inset: -10px;
+  width: calc(100% + 20px);
+  height: calc(100% + 20px);
+  opacity: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.notif-badge {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: #111;
+}
+.notif-badge .logo-glyph {
+  width: 58%;
 }
