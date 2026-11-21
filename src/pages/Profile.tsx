@@ -200,6 +200,12 @@ export default function Profile() {
         </SettingRow>
       </Link>
 
+      <Link to="/catalog" className="card set-card set-link">
+        <SettingRow icon="layers" title={t('catalog_title')} hint={t('catalog_hint')}>
+          <Icon name="chevronLeft" size={18} />
+        </SettingRow>
+      </Link>
+
       <div className="card set-card">
         <SettingRow icon="globe" title={t('profile_language')}>
           <LangMenu />

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
 import { formatToday } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
@@ -8,6 +9,7 @@ const FEATURES: { icon: IconName; tone: string; title: TKey; text: TKey }[] = [
   { icon: 'pencil', tone: 'peach', title: 'feat_manual_t', text: 'feat_manual_d' },
   { icon: 'layers', tone: 'mint', title: 'feat_batches_t', text: 'feat_batches_d' },
   { icon: 'bell', tone: 'rose', title: 'feat_alerts_t', text: 'feat_alerts_d' },
+  { icon: 'cart', tone: 'mint', title: 'feat_shop_t', text: 'feat_shop_d' },
   { icon: 'cloud', tone: 'sky', title: 'feat_sync_t', text: 'feat_sync_d' },
 ];
 
@@ -19,6 +21,16 @@ export default function Home() {
       <header className="home-greet">
         <h1>{t('home_title')}</h1>
         <p>{t('home_text')}</p>
+        <div className="home-cta">
+          <Link to="/scan" className="btn btn-primary">
+            <Icon name="plus" size={18} stroke={2.4} />
+            {t('home_cta')}
+          </Link>
+          <Link to="/shopping" className="btn btn-soft">
+            <Icon name="cart" size={18} />
+            {t('shop_title')}
+          </Link>
+        </div>
       </header>
 
       <span className="section-label">{t('home_features')}</span>

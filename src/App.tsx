@@ -8,7 +8,9 @@ import Login from './pages/Login';
 import ProductForm from './pages/ProductForm';
 import Products from './pages/Products';
 import Profile from './pages/Profile';
+import Catalog from './pages/Catalog';
 import Scan from './pages/Scan';
+import ShoppingPick from './pages/ShoppingPick';
 import Shopping from './pages/Shopping';
 import { t } from './lib/i18n';
 import { useData } from './state/DataProvider';
@@ -38,6 +40,10 @@ export default function App() {
       </Route>
       <Route path="scan" element={<Scan />} />
       <Route path="shopping" element={<Shopping />} />
+      <Route path="shopping/add" element={<ShoppingPick />} />
+      <Route path="shopping/add/:cat" element={<ShoppingPick />} />
+      <Route path="catalog" element={<Catalog />} />
+      <Route path="catalog/:cat" element={<Catalog />} />
       <Route path="product/new" element={<ProductForm />} />
       <Route path="product/:id" element={<Details />} />
       <Route path="product/:id/edit" element={<ProductForm />} />

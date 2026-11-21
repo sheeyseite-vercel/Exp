@@ -4,11 +4,31 @@ export type Location = 'fridge' | 'freezer' | 'pantry' | 'other';
 export const LOCATIONS: Location[] = ['fridge', 'freezer', 'pantry', 'other'];
 export type Outcome = 'used' | 'discarded';
 
+export type Unit = 'box' | 'half' | 'piece';
+
 export interface ShoppingItem {
   id: string;
   name: string;
   done: boolean;
   created_at: string;
+  qty: number;
+  unit: Unit;
+  brand: string | null;
+  photo_path: string | null;
+}
+
+export interface CatCategory {
+  id: string;
+  name: string;
+  photo_path: string | null;
+}
+
+export interface CatProduct {
+  id: string;
+  category_id: string;
+  name: string;
+  brand: string | null;
+  photo_path: string | null;
 }
 
 export interface Product {

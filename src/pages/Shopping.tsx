@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { BackButton, Empty, ErrorBanner } from '../components/ui';
+import { PhotoTile } from '../components/PhotoTile';
+import { qtyLabel } from '../lib/catalog';
+import { Link } from 'react-router-dom';
 import { t } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 import type { ShoppingItem } from '../lib/types';
@@ -14,7 +17,7 @@ export default function Shopping() {
   const load = useCallback(async () => {
     const { data, error: failure } = await supabase
       .from('shopping_items')
-      .select('id,name,done,created_at')
+      .select('id,name,done,created_at,qty,unit,brand,photo_path')
       .order('created_at', { ascending: false });
     if (failure) setError(failure.message);
     else setItems(data as ShoppingItem[]);
@@ -62,6 +65,10 @@ export default function Shopping() {
         <h1>{t('shop_title')}</h1>
       </header>
       <ErrorBanner message={error} />
+      <Link to="/shopping/add" className="btn btn-primary">
+        <Icon name="layers" size={20} />
+        {t('shop_pick')}
+      </Link>
       <form
         className="shop-add"
         onSubmit={(event) => {
@@ -90,7 +97,13 @@ export default function Shopping() {
             <button type="button" className="shop-check" aria-pressed={item.done} onClick={() => void toggle(item)}>
               {item.done && <Icon name="check" size={14} stroke={3} />}
             </button>
-            <span className="shop-name">{item.name}</span>
+            {(item.photo_path || item.brand) && <PhotoTile path={item.photo_path} label={item.name} className="shop-photo" />}
+            <span className="shop-name">
+              {item.name}
+              <span className="muted small shop-sub">
+                {[item.brand, item.unit === 'piece' && item.qty === 1 ? '' : qtyLabel(item)].filter(Boolean).join(' · ')}
+              </span>
+            </span>
             <button type="button" className="shop-del" aria-label={t('delete')} onClick={() => void remove(item)}>
               <Icon name="close" size={16} stroke={2.2} />
             </button>
