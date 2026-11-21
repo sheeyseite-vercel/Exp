@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LogoGlyph } from '../components/LogoGlyph';
-import { GoogleLogo } from '../components/Icon';
+import { GoogleLogo, Icon } from '../components/Icon';
 import { t } from '../lib/i18n';
 import { useData } from '../state/DataProvider';
 
