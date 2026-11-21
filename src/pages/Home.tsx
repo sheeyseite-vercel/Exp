@@ -17,34 +17,38 @@ export default function Home() {
     <div className="page page-home">
       <span className="muted small">{formatToday(new Date())}</span>
 
-      <section className="welcome card">
-        <div className="welcome-top">
-          <span className="logo">
-            <Icon name="star" size={26} />
-          </span>
-          <h1>{t('home_title')}</h1>
-        </div>
+      <section className="hero-home">
+        <span className="hero-star" aria-hidden="true">
+          <Icon name="star" size={150} />
+        </span>
+        <span className="logo">
+          <Icon name="star" size={26} />
+        </span>
+        <h1>{t('home_title')}</h1>
         <p>{t('home_text')}</p>
-        <div className="welcome-actions">
+        <div className="hero-actions">
           <Link to="/scan" className="btn btn-primary">
             <Icon name="plus" size={18} stroke={2.2} />
             {t('home_cta')}
           </Link>
-          <Link to="/products" className="btn btn-soft">
+          <Link to="/products" className="hero-link">
             {t('home_products')}
+            <Icon name="chevronLeft" size={16} stroke={2.4} />
           </Link>
         </div>
       </section>
 
       <span className="section-label">{t('home_features')}</span>
-      <section className="features">
+      <section className="feature-list card">
         {FEATURES.map((feature) => (
-          <article key={feature.title} className={`feature tone-${feature.tone}`}>
+          <article key={feature.title} className={`frow tone-${feature.tone}`}>
             <span className="feature-icon">
               <Icon name={feature.icon} size={22} />
             </span>
-            <h2>{t(feature.title)}</h2>
-            <p>{t(feature.text)}</p>
+            <span className="frow-text">
+              <h2>{t(feature.title)}</h2>
+              <p>{t(feature.text)}</p>
+            </span>
           </article>
         ))}
       </section>

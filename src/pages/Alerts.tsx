@@ -97,23 +97,23 @@ export default function Alerts() {
         <span className="muted small">{t('when_hint')}</span>
       </div>
 
-      <div className={`options ${enabled ? '' : 'is-off'}`} role="group" aria-label={t('when_title')}>
+      <div className={`tiles ${enabled ? '' : 'is-off'}`} role="group" aria-label={t('when_title')}>
         {PRESETS.map((preset) => {
           const on = rules.includes(preset.days);
+          const info = reminderCard(preset.days);
           return (
             <button
               key={preset.days}
               type="button"
               aria-pressed={on}
+              aria-label={t(preset.title)}
               disabled={!enabled}
-              className={`option ${on ? 'on' : ''}`}
+              className={`tile ${on ? 'on' : ''}`}
               onClick={() => toggle(preset.days)}
             >
-              <span className="option-check">{on && <Icon name="check" size={16} stroke={2.6} />}</span>
-              <span className="option-text">
-                <strong>{t(preset.title)}</strong>
-                <span className="small">{t(preset.text)}</span>
-              </span>
+              <span className="tile-num">{info.badge}</span>
+              <span className="tile-label">{info.chip}</span>
+              <span className="tile-check">{on && <Icon name="check" size={14} stroke={3} />}</span>
             </button>
           );
         })}
