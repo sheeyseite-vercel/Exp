@@ -369,6 +369,12 @@ const ar = {
   prod_count: "{n} منتجات",
   feat_shop_t: "قائمة مشتريات بالصور",
   feat_shop_d: "اختر من أقسامك وماركاتك بالصور، بالصناديق أو بالعدد.",
+  photo_take: "التقاط صورة",
+  photo_gallery: "من المعرض",
+  photo_ready: "تم اختيار صورة",
+  pick_manage: "تعديل",
+  pick_new_cat: "قسم جديد",
+  pick_new_prod: "منتج جديد",
 };
 
 type Dict = Record<keyof typeof ar, string>;
@@ -676,6 +682,12 @@ const fr: Dict = {
   prod_count: "{n} produits",
   feat_shop_t: "Courses en images",
   feat_shop_d: "Choisissez dans vos rayons et marques, en boîtes ou à l’unité.",
+  photo_take: "Prendre une photo",
+  photo_gallery: "Depuis la galerie",
+  photo_ready: "Photo choisie",
+  pick_manage: "Modifier",
+  pick_new_cat: "Nouveau rayon",
+  pick_new_prod: "Nouveau produit",
 };
 
 const en: Dict = {
@@ -981,6 +993,12 @@ const en: Dict = {
   prod_count: "{n} products",
   feat_shop_t: "Shopping list with photos",
   feat_shop_d: "Pick from your own categories and brands, by box or by count.",
+  photo_take: "Take a photo",
+  photo_gallery: "From gallery",
+  photo_ready: "Photo selected",
+  pick_manage: "Edit",
+  pick_new_cat: "New category",
+  pick_new_prod: "New product",
 };
 
 const DICTS: Record<Lang, Dict> = { ar, fr, en };

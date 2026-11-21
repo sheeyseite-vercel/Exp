@@ -8,7 +8,6 @@ import Login from './pages/Login';
 import ProductForm from './pages/ProductForm';
 import Products from './pages/Products';
 import Profile from './pages/Profile';
-import Catalog from './pages/Catalog';
 import Scan from './pages/Scan';
 import ShoppingPick from './pages/ShoppingPick';
 import Shopping from './pages/Shopping';
@@ -42,8 +41,8 @@ export default function App() {
       <Route path="shopping" element={<Shopping />} />
       <Route path="shopping/add" element={<ShoppingPick />} />
       <Route path="shopping/add/:cat" element={<ShoppingPick />} />
-      <Route path="catalog" element={<Catalog />} />
-      <Route path="catalog/:cat" element={<Catalog />} />
+      <Route path="catalog" element={<ShoppingPick manage />} />
+      <Route path="catalog/:cat" element={<ShoppingPick manage />} />
       <Route path="product/new" element={<ProductForm />} />
       <Route path="product/:id" element={<Details />} />
       <Route path="product/:id/edit" element={<ProductForm />} />

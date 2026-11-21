@@ -82,11 +82,9 @@ export default function Shopping() {
           maxLength={120}
           placeholder={t('shop_placeholder')}
           aria-label={t('shop_placeholder')}
+          enterKeyHint="done"
           onChange={(event) => setText(event.target.value)}
         />
-        <button type="submit" className="btn btn-primary btn-sm" aria-label={t('add')}>
-          <Icon name="plus" size={18} stroke={2.4} />
-        </button>
       </form>
 
       {loaded && items.length === 0 && <Empty title={t('shop_empty')} text={t('shop_hint')} />}
