@@ -97,29 +97,26 @@ export default function Alerts() {
         <span className="muted small">{t('when_hint')}</span>
       </div>
 
-      <div className={`slots ${enabled ? '' : 'is-off'}`} role="group" aria-label={t('when_title')}>
+      <div className={`pills day-pills ${enabled ? '' : 'is-off'}`} role="group" aria-label={t('when_title')}>
         {PRESETS.map((preset) => {
           const on = rules.includes(preset.days);
-          const info = reminderCard(preset.days);
           return (
             <button
               key={preset.days}
               type="button"
               aria-pressed={on}
-              aria-label={t(preset.title)}
               disabled={!enabled}
-              className={`slot ${on ? 'on' : ''}`}
+              className={`pill pill-check ${on ? 'on' : ''}`}
               onClick={() => toggle(preset.days)}
             >
-              <span className="slot-num">{info.badge}</span>
-              <span className="slot-label">{info.chip}</span>
-              <span className="slot-check">{on && <Icon name="check" size={14} stroke={3} />}</span>
+              {on && <Icon name="check" size={15} stroke={2.8} />}
+              {t(preset.title)}
             </button>
           );
         })}
       </div>
 
-      <div className={`card custom-card ${enabled ? '' : 'is-off'}`}>
+      <div className={`flat custom-card ${enabled ? '' : 'is-off'}`}>
         <span className="stack-xs">
           <span className="row-name">{t('custom_title')}</span>
           <span className="muted small">{t('custom_hint')}</span>
@@ -180,7 +177,7 @@ export default function Alerts() {
         </div>
       )}
 
-      <label className="card time-row" htmlFor="notify-time">
+      <label className="flat time-row" htmlFor="notify-time">
         <span className="time-label">
           <Icon name="clock" size={20} />
           {t('time_label')}

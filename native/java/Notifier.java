@@ -29,7 +29,7 @@ final class Notifier {
         if (nm == null) return;
         NotificationChannel ch = new NotificationChannel(CHANNEL, name, NotificationManager.IMPORTANCE_HIGH);
         ch.enableVibration(true);
-        ch.setLightColor(0xFFE2543C);
+        ch.setLightColor(0xFF3B6FF0);
         nm.createNotificationChannel(ch);
     }
 
@@ -62,7 +62,7 @@ final class Notifier {
 
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_expired)
-                .setColor(0xFFE2543C)
+                .setColor(0xFF3B6FF0)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
