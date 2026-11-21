@@ -4,7 +4,7 @@ import { ErrorBanner, Switch } from '../components/ui';
 import { addDays, daysPhrase, daysUntil, toISO } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
 import { exactAlarmState, openExactAlarmSettings, type ExactAlarmState } from '../lib/notifications';
-import { notificationBody } from '../lib/planner';
+import { notificationBody, reminderCard } from '../lib/planner';
 import { useData } from '../state/DataProvider';
 
 const PRESETS: { days: number; title: TKey; text: TKey }[] = [
@@ -51,6 +51,7 @@ export default function Alerts() {
   // Example notification built from the nearest real product, or a placeholder.
   const sample = products.find((p) => daysUntil(p.expiry_date) >= 0);
   const lead = [...rules].sort((a, b) => b - a)[0] ?? 3;
+  const card = reminderCard(lead);
   const sampleName = sample?.name ?? t('sample_name');
   const sampleExpiry = sample?.expiry_date ?? addDays(toISO(new Date()), lead);
 
@@ -197,15 +198,14 @@ export default function Alerts() {
 
       <span className="section-label">{t('preview_title')}</span>
       <div className="card notif-preview">
-        <span className="logo logo-sm">
-          <Icon name="star" size={22} />
-        </span>
+        <span className={`notif-badge${card.urgent ? ' urgent' : ''}`}>{card.badge}</span>
         <span className="notif-text">
           <span className="notif-top">
             <span>{t('app_name')}</span>
             <span>{t('now')}</span>
           </span>
           <span className="notif-body">{notificationBody(sampleName, lead, sampleExpiry)}</span>
+          <span className="notif-chip">{card.chip}</span>
         </span>
       </div>
     </div>

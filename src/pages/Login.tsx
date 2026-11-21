@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { GoogleLogo, Icon } from '../components/Icon';
-import { LangSwitch } from '../components/LangSwitch';
 import { t } from '../lib/i18n';
 import { useData } from '../state/DataProvider';
 
@@ -20,9 +19,6 @@ export default function Login() {
   return (
     <div className="login">
       <div className="login-inner">
-        <div className="login-top">
-          <LangSwitch />
-        </div>
         <div className="brand">
           <span className="logo">
             <Icon name="star" />

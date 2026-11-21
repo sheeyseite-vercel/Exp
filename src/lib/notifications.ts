@@ -1,7 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { t } from './i18n';
-import { notificationBody, planNotifications } from './planner';
+import { notificationBody, planNotifications, reminderCard } from './planner';
+import { ExpiryNotifier } from './expiryNotifier';
 import { addDays, toISO } from './dates';
 import type { Product, Settings } from './types';
 
@@ -10,16 +11,6 @@ export type PermissionState = 'granted' | 'denied' | 'unsupported';
 export interface SyncResult {
   scheduled: number;
   permission: PermissionState;
-}
-
-async function ensureChannel(): Promise<void> {
-  await LocalNotifications.createChannel({
-    id: 'expiry',
-    name: t('notif_channel'),
-    importance: 4,
-    visibility: 1,
-    vibration: true,
-  }).catch(() => undefined);
 }
 
 export type TestResult = 'sent' | 'denied' | 'unsupported';
@@ -32,17 +23,13 @@ export async function sendTestNotification(): Promise<TestResult> {
     permission = await LocalNotifications.requestPermissions();
   }
   if (permission.display !== 'granted') return 'denied';
-  await ensureChannel();
-  await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: 2_000_000_000,
-        title: t('app_name'),
-        body: notificationBody(t('test_sample'), 3, addDays(toISO(new Date()), 3), 12),
-        channelId: 'expiry',
-        // No schedule: the notification is shown immediately.
-      },
-    ],
+  await ExpiryNotifier.showNow({
+    id: 2_000_000_000,
+    at: 0,
+    title: t('app_name'),
+    body: notificationBody(t('test_sample'), 3, addDays(toISO(new Date()), 3), 12),
+    ...reminderCard(3),
+    channel: t('notif_channel'),
   });
   return 'sent';
 }
@@ -79,6 +66,7 @@ export async function syncNotifications(products: Product[], settings: Settings)
     await LocalNotifications.cancel({ notifications: pending.notifications.map((n) => ({ id: n.id })) });
   }
   if (plan.length === 0) {
+    await ExpiryNotifier.cancelAll().catch(() => undefined);
     const current = await LocalNotifications.checkPermissions();
     return { scheduled: 0, permission: current.display === 'denied' ? 'denied' : 'granted' };
   }
@@ -89,16 +77,17 @@ export async function syncNotifications(products: Product[], settings: Settings)
   }
   if (permission.display !== 'granted') return { scheduled: 0, permission: 'denied' };
 
-  await ensureChannel();
-
-  await LocalNotifications.schedule({
-    notifications: plan.map((item) => ({
+  await ExpiryNotifier.schedule({
+    items: plan.map((item) => ({
       id: item.id,
+      at: item.at.getTime(),
       title: item.title,
       body: item.body,
-      channelId: 'expiry',
-      schedule: { at: item.at, allowWhileIdle: true },
-      extra: { productId: item.productId },
+      badge: item.badge,
+      chip: item.chip,
+      urgent: item.urgent,
+      channel: t('notif_channel'),
+      productId: item.productId,
     })),
   });
   return { scheduled: plan.length, permission: 'granted' };

@@ -1,5 +1,5 @@
 // Patches the generated Android project: deep link for Google sign-in, permissions, ML Kit scanner.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync } from 'node:fs';
 
 const file = 'android/app/src/main/AndroidManifest.xml';
 let xml = readFileSync(file, 'utf8');
@@ -36,5 +36,39 @@ if (!xml.includes('com.google.mlkit.vision.DEPENDENCIES')) xml = xml.replace('</
 // Keep the single task so the deep link returns to the running app.
 if (!xml.includes('android:launchMode')) xml = xml.replace('<activity', '<activity android:launchMode="singleTask"');
 
+// Branded notification: receivers for scheduled reminders and re-arming after reboot.
+const receivers = `        <receiver android:name=".ReminderReceiver" android:exported="false" />
+        <receiver android:name=".BootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+`;
+if (!xml.includes('.ReminderReceiver')) xml = xml.replace('</application>', `${receivers}    </application>`);
+
 writeFileSync(file, xml);
 console.log('AndroidManifest patched');
+
+// Native sources + resources for the custom notification.
+const javaDir = 'android/app/src/main/java/com/salahiyati/app';
+mkdirSync(javaDir, { recursive: true });
+cpSync('native/java', javaDir, { recursive: true });
+if (existsSync('native/res')) cpSync('native/res', 'android/app/src/main/res', { recursive: true });
+writeFileSync(
+  `${javaDir}/MainActivity.java`,
+  `package com.salahiyati.app;
+
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(ExpiryNotifierPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}
+`,
+);
+console.log('Native notifier installed');

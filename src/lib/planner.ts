@@ -7,6 +7,11 @@ export interface PlannedNotification {
   at: Date;
   title: string;
   body: string;
+  /** Big number shown on the notification badge ('!' on the expiry day). */
+  badge: string;
+  /** Short label, e.g. "Tomorrow". */
+  chip: string;
+  urgent: boolean;
   productId: string;
 }
 
@@ -17,6 +22,12 @@ export function notificationBody(name: string, daysBefore: number, expiryISO: st
   if (daysBefore === 0) return t('notif_today', { name: label });
   if (daysBefore === 1) return t('notif_tomorrow', { name: label });
   return t('notif_in', { name: label, days: daysPhrase(daysBefore), date: formatDay(expiryISO) });
+}
+
+export function reminderCard(daysBefore: number): { badge: string; chip: string; urgent: boolean } {
+  if (daysBefore === 0) return { badge: '!', chip: t('chip_today'), urgent: true };
+  if (daysBefore === 1) return { badge: '1', chip: t('chip_tomorrow'), urgent: true };
+  return { badge: String(daysBefore), chip: daysPhrase(daysBefore), urgent: false };
 }
 
 export function parseTime(value: string): { hours: number; minutes: number } {
@@ -45,6 +56,7 @@ export function planNotifications(
         at,
         title: t('app_name'),
         body: notificationBody(product.name, daysBefore, product.expiry_date, product.quantity),
+        ...reminderCard(daysBefore),
         productId: product.id,
       });
     }

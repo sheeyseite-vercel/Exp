@@ -136,7 +136,7 @@ const ar = {
   feat_alerts_d: 'اختر بنفسك: قبل 7 أيام، قبل يوم، أو يوم الانتهاء.',
   feat_sync_t: 'محفوظ في حسابك',
   feat_sync_d: 'بياناتك تتزامن مع حساب Google على كل أجهزتك.',
-  home_cta: 'ابدأ بإضافة منتج',
+  home_cta: 'إضافة منتج',
   home_products: 'عرض منتجاتي',
 
   products_count: '{n} منتجًا',
@@ -374,7 +374,7 @@ const fr: Dict = {
   feat_alerts_d: 'Choisissez vous-même : 7 jours avant, 1 jour avant ou le jour même.',
   feat_sync_t: 'Sauvegardé dans votre compte',
   feat_sync_d: 'Vos données se synchronisent avec votre compte Google sur tous vos appareils.',
-  home_cta: 'Ajouter un premier produit',
+  home_cta: 'Ajouter un produit',
   home_products: 'Voir mes produits',
 
   products_count: '{n} produits',
@@ -610,7 +610,7 @@ const en: Dict = {
   feat_alerts_d: 'You choose: 7 days before, 1 day before, or on the expiry day.',
   feat_sync_t: 'Saved to your account',
   feat_sync_d: 'Your data syncs with your Google account across all your devices.',
-  home_cta: 'Add your first product',
+  home_cta: 'Add product',
   home_products: 'View my products',
 
   products_count: '{n} products',

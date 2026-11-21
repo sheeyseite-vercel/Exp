@@ -2,15 +2,15 @@
    Style: modern minimalism, bento grid, soft UI, pastel palette, flat cards with subtle shadows. */
 
 :root {
-  --bg: #f6f5fb;
+  --bg: #faf7f5;
   --surface: #ffffff;
-  --ink: #1e1b2e;
-  --muted: #5e5a73;
-  --line: #e8e5f2;
-  --track: #ece9f7;
-  --primary: #5b4fd6;
-  --primary-ink: #3e33a8;
-  --primary-soft: #e7e3fc;
+  --ink: #261d1a;
+  --muted: #6b625c;
+  --line: #eee7e3;
+  --track: #f6ebe7;
+  --primary: #e2543c;
+  --primary-ink: #b93a24;
+  --primary-soft: #fde7e1;
   --mint-bg: #ddf4e8;
   --mint-ink: #17603f;
   --peach-bg: #ffe7d6;
@@ -19,7 +19,7 @@
   --rose-ink: #9e2140;
   --sky-bg: #dceefb;
   --sky-ink: #1b5a8c;
-  --shadow: 0 1px 2px rgba(30, 27, 46, 0.05), 0 10px 24px -16px rgba(30, 27, 46, 0.22);
+  --shadow: 0 1px 2px rgba(38, 29, 26, 0.05), 0 10px 24px -16px rgba(38, 29, 26, 0.22);
   --font: 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -79,7 +79,7 @@ h2 {
 }
 
 :focus-visible {
-  outline: 3px solid #8e84e6;
+  outline: 3px solid #f08a74;
   outline-offset: 2px;
 }
 
@@ -206,7 +206,7 @@ html[dir='ltr'] .rtl-flip {
   align-items: center;
   gap: 4px;
   width: 64px;
-  color: #6b6782;
+  color: #7a7068;
   font-size: 11px;
   font-weight: 500;
 }
@@ -232,7 +232,7 @@ html[dir='ltr'] .rtl-flip {
   border-radius: 20px;
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 10px 20px -8px rgba(91, 79, 214, 0.6);
+  box-shadow: 0 10px 20px -8px rgba(226, 84, 60, 0.55);
 }
 
 /* ---- pages ------------------------------------------------------------------------------ */
@@ -530,7 +530,7 @@ html[dir='ltr'] .rtl-flip {
 .btn-primary {
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 10px 20px -10px rgba(91, 79, 214, 0.6);
+  box-shadow: 0 10px 20px -10px rgba(226, 84, 60, 0.55);
 }
 .btn-google {
   background: var(--surface);
@@ -544,7 +544,7 @@ html[dir='ltr'] .rtl-flip {
 }
 .btn-outline {
   background: var(--surface);
-  border: 1px solid #d6d2e6;
+  border: 1px solid #e3d9d4;
   font-size: 15px;
 }
 .btn-danger {
@@ -601,7 +601,7 @@ html[dir='ltr'] .rtl-flip {
 .fchip-all {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(30, 27, 46, 0.08);
+  box-shadow: 0 1px 2px rgba(38, 29, 26, 0.08);
 }
 .fchip-soon {
   background: var(--peach-bg);
@@ -655,7 +655,7 @@ html[dir='ltr'] .rtl-flip {
   overflow: hidden;
   border-radius: 22px;
   background: var(--primary-soft);
-  border: 1.5px dashed #bdb6e8;
+  border: 1.5px dashed #f0b9ab;
 }
 .photo-box img {
   width: 100%;
@@ -687,7 +687,7 @@ html[dir='ltr'] .rtl-flip {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(30, 27, 46, 0.65);
+  background: rgba(38, 29, 26, 0.65);
   color: #fff;
 }
 .field {
@@ -720,7 +720,7 @@ html[dir='ltr'] .rtl-flip {
 .field input::placeholder {
   font-size: 15px;
   font-weight: 400;
-  color: #8b87a0;
+  color: #9a8f88;
 }
 .date-row {
   display: grid;
@@ -781,7 +781,7 @@ html[dir='ltr'] .rtl-flip {
   color: var(--ink);
   font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 1px 2px rgba(30, 27, 46, 0.08);
+  box-shadow: 0 1px 2px rgba(38, 29, 26, 0.08);
 }
 .pill.active {
   background: var(--primary);
@@ -790,7 +790,7 @@ html[dir='ltr'] .rtl-flip {
 }
 .pill-check {
   padding: 0 14px;
-  border: 1px solid #d6d2e6;
+  border: 1px solid #e3d9d4;
   background: transparent;
   box-shadow: none;
 }
@@ -801,7 +801,7 @@ html[dir='ltr'] .rtl-flip {
   font-weight: 600;
 }
 .pill-dashed {
-  border: 1px dashed #bdb6e8;
+  border: 1px dashed #f0b9ab;
   background: transparent;
   color: var(--primary-ink);
   font-weight: 600;
@@ -879,7 +879,7 @@ html[dir='ltr'] .rtl-flip {
   width: 90px;
   height: 40px;
   padding: 0 12px;
-  border: 1px solid #d6d2e6;
+  border: 1px solid #e3d9d4;
   border-radius: 12px;
   background: var(--bg);
   font-size: 16px;
@@ -1039,7 +1039,7 @@ html[dir='ltr'] .rtl-flip {
   border-radius: 22px;
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 10px 20px -12px rgba(91, 79, 214, 0.6);
+  box-shadow: 0 10px 20px -12px rgba(226, 84, 60, 0.55);
 }
 .master-icon {
   display: flex;
@@ -1150,7 +1150,7 @@ html[dir='ltr'] .rtl-flip {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: #d6d2e6;
+  background: #e3d9d4;
 }
 .switch.on {
   background: var(--primary);
@@ -1274,7 +1274,7 @@ html[dir='ltr'] .rtl-flip {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #2a2740;
+  background: #2b211e;
 }
 .scan-top {
   display: flex;
@@ -1381,7 +1381,7 @@ html[dir='ltr'] .rtl-flip {
   width: 40px;
   height: 4px;
   border-radius: 2px;
-  background: #d6d2e6;
+  background: #e3d9d4;
 }
 .segmented {
   display: flex;
@@ -1407,7 +1407,7 @@ html[dir='ltr'] .rtl-flip {
 .segmented > .active {
   background: #fff;
   color: var(--primary-ink);
-  box-shadow: 0 1px 2px rgba(30, 27, 46, 0.08);
+  box-shadow: 0 1px 2px rgba(38, 29, 26, 0.08);
 }
 .detected {
   display: flex;
@@ -1537,10 +1537,6 @@ html[dir='ltr'] .rtl-flip {
 
 
 /* ---- additions: language, welcome, batches, alerts options, profile ------------------------- */
-.login-top {
-  display: flex;
-  justify-content: flex-end;
-}
 .lang-switch {
   display: flex;
   gap: 4px;
@@ -1563,7 +1559,7 @@ html[dir='ltr'] .rtl-flip {
 .lang-switch button.active {
   background: #fff;
   color: var(--primary-ink);
-  box-shadow: 0 1px 2px rgba(30, 27, 46, 0.1);
+  box-shadow: 0 1px 2px rgba(38, 29, 26, 0.1);
 }
 .lang-light {
   display: inline-flex;
@@ -1664,7 +1660,7 @@ html[dir='ltr'] .rtl-flip {
   width: 76px;
   height: 44px;
   padding: 0;
-  border: 1px solid #d6d2e6;
+  border: 1px solid #e3d9d4;
   border-radius: 14px;
   background: var(--bg);
   text-align: center;
@@ -1709,7 +1705,7 @@ html[dir='ltr'] .rtl-flip {
   width: 28px;
   height: 28px;
   flex: none;
-  border: 2px solid #c9c4de;
+  border: 2px solid #dccfc8;
   border-radius: 50%;
   color: #fff;
 }
@@ -1774,7 +1770,7 @@ html[dir='ltr'] .rtl-flip {
 .name-edit input {
   height: 52px;
   padding: 0 16px;
-  border: 1px solid #d6d2e6;
+  border: 1px solid #e3d9d4;
   border-radius: 16px;
   background: var(--bg);
   font-size: 17px;
@@ -1852,7 +1848,7 @@ html[dir='ltr'] .rtl-flip {
 
 /* ---- card refresh: flat, outlined, with a status accent ----------------------------------- */
 :root {
-  --shadow: 0 1px 2px rgba(30, 27, 46, 0.04);
+  --shadow: 0 1px 2px rgba(38, 29, 26, 0.04);
   --accent-rose: #d4476b;
   --accent-peach: #e08a4a;
   --accent-mint: #3fae7a;
@@ -1894,9 +1890,9 @@ html[dir='ltr'] .rtl-flip {
 /* welcome */
 .welcome {
   border: 0;
-  background: linear-gradient(150deg, #6c60e3 0%, #4a3ec4 100%);
+  background: linear-gradient(150deg, #e2543c 0%, #c8432b 100%);
   color: #fff;
-  box-shadow: 0 18px 30px -20px rgba(74, 62, 196, 0.8);
+  box-shadow: 0 18px 30px -20px rgba(226, 84, 60, 0.8);
 }
 .welcome .muted {
   color: rgba(255, 255, 255, 0.84);
@@ -2000,7 +1996,7 @@ html[dir='ltr'] .rtl-flip {
   background: #fff;
   color: var(--brand);
   border: 1px solid var(--line);
-  box-shadow: 0 6px 14px -8px rgba(30, 27, 46, 0.35);
+  box-shadow: 0 6px 14px -8px rgba(38, 29, 26, 0.35);
 }
 .welcome {
   gap: 10px;
@@ -2132,7 +2128,7 @@ html[dir='ltr'] .rtl-flip {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
-  box-shadow: 0 16px 32px -16px rgba(30, 27, 46, 0.45);
+  box-shadow: 0 16px 32px -16px rgba(38, 29, 26, 0.45);
 }
 .lang-list button {
   display: flex;
@@ -2158,4 +2154,31 @@ html[dir='ltr'] .rtl-flip {
   .welcome-actions {
     flex-direction: row;
   }
+}
+
+/* notification preview card */
+.notif-badge {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--brand, #e2543c);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+}
+.notif-badge.urgent {
+  background: #b93a24;
+}
+.notif-chip {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  background: #fde7e1;
+  color: #b93a24;
+  font-size: 12px;
+  font-weight: 700;
 }

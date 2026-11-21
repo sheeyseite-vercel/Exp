@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: { allowMixedContent: false },
   plugins: {
-    LocalNotifications: { smallIcon: 'ic_launcher', iconColor: '#5B4FD6' },
+    LocalNotifications: { smallIcon: 'ic_launcher', iconColor: '#E2543C' },
   },
 };
 
