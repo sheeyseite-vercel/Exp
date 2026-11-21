@@ -117,10 +117,13 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
         <div className="pick-grid">
           {categories.map((c, i) => (
             <div key={c.id} className="pick-wrap">
-              <Link to={`${base}/${c.id}`} className="pick-card">
-                <PhotoTile path={c.photo_path} label={c.name} index={i} className="pick-photo" />
-                <strong>{c.name}</strong>
-                <span className="muted small">{t('prod_count', { n: products.filter((p) => p.category_id === c.id).length })}</span>
+              <Link to={`${base}/${c.id}`} className="cat-card">
+                <PhotoTile path={c.photo_path} label={c.name} index={i} className="cat-cover" />
+                <span className="cat-shade" />
+                <span className="cat-info">
+                  <strong>{c.name}</strong>
+                  <span className="cat-count">{t('prod_count', { n: products.filter((p) => p.category_id === c.id).length })}</span>
+                </span>
               </Link>
               {editing && (
                 <button
