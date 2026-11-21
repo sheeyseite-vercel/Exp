@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
 import { formatToday } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
@@ -17,26 +16,10 @@ export default function Home() {
     <div className="page page-home">
       <span className="muted small">{formatToday(new Date())}</span>
 
-      <section className="hero-home">
-        <span className="hero-star" aria-hidden="true">
-          <Icon name="star" size={150} />
-        </span>
-        <span className="logo">
-          <Icon name="star" size={26} />
-        </span>
+      <header className="home-greet">
         <h1>{t('home_title')}</h1>
         <p>{t('home_text')}</p>
-        <div className="hero-actions">
-          <Link to="/scan" className="btn btn-primary">
-            <Icon name="plus" size={18} stroke={2.2} />
-            {t('home_cta')}
-          </Link>
-          <Link to="/products" className="hero-link">
-            {t('home_products')}
-            <Icon name="chevronLeft" size={16} stroke={2.4} />
-          </Link>
-        </div>
-      </section>
+      </header>
 
       <span className="section-label">{t('home_features')}</span>
       <section className="feature-list card">
