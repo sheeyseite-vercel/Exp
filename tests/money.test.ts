@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   centsToInput,
+  formatMoneyCur,
   formatMoney,
   formatQty,
   invoiceTotal,
@@ -10,6 +11,8 @@ import {
   parseQty,
   reconcile,
 } from '../src/lib/money';
+
+const plain = (x: string) => x.replace(/[\u2066\u2069]/g, '');
 
 describe('money parsing', () => {
   it('parses prices exactly', () => {
@@ -42,11 +45,13 @@ describe('totals', () => {
     expect(lineTotal(1500, 1999)).toBe(2999); // 1.5 x 19.99 = 29.985 -> 29.99
   });
   it('formats', () => {
-    expect(formatMoney(123456789)).toBe('1 234 567.89');
-    expect(formatMoney(5)).toBe('0.05');
-    expect(formatMoney(-250)).toBe('-2.50');
-    expect(formatQty(2500)).toBe('2.5');
-    expect(formatQty(3000)).toBe('3');
+    expect(plain(formatMoney(123456789))).toBe('1 234 567.89');
+    expect(plain(formatMoney(5))).toBe('0.05');
+    expect(plain(formatMoney(-250))).toBe('-2.50');
+    expect(plain(formatQty(2500))).toBe('2.5');
+    expect(plain(formatQty(3000))).toBe('3');
+    expect(plain(formatMoneyCur(150000))).toBe('1 500.00 DA');
+    expect(formatMoney(5).startsWith('\u2066')).toBe(true);
     expect(centsToInput(12550)).toBe('125.5');
     expect(centsToInput(1200)).toBe('12');
   });

@@ -77,14 +77,9 @@ export function AppShell() {
       </main>
 
       <nav className="bottom-nav" aria-label={t('nav_aria')}>
-        <BottomTab tab={TABS[0]} />
-        <BottomTab tab={TABS[1]} />
-        <Link to="/scan" className="fab" aria-label={t('add_product')}>
-          <Icon name="plus" size={26} stroke={2} />
-        </Link>
-        <BottomTab tab={TABS[2]} />
-        <BottomTab tab={TABS[3]} />
-        <BottomTab tab={TABS[4]} />
+        {TABS.map((tab) => (
+          <BottomTab key={tab.to} tab={tab} />
+        ))}
       </nav>
     </div>
   );

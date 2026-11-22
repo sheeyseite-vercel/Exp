@@ -2,7 +2,7 @@ import { Icon } from './Icon';
 import { t } from '../lib/i18n';
 
 /** Two ways to add a photo: take one now, or choose from the gallery. */
-export function PhotoPick({ file, onFile }: { file: Blob | null; onFile: (f: Blob | null) => void }) {
+export function PhotoPick({ file, onFile }: { file: Blob | null; onFile: (f: Blob | null) => void | Promise<void> }) {
   const handle = (event: React.ChangeEvent<HTMLInputElement>) => {
     onFile(event.target.files?.[0] ?? null);
     event.target.value = '';

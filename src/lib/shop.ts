@@ -17,6 +17,8 @@ export interface ShopInvoice {
   supplier: string | null;
   printed_cents: number | null;
   total_cents: number;
+  /** yyyy-mm-dd, the date written on the receipt */
+  invoice_date: string;
   created_at: string;
 }
 
@@ -110,7 +112,8 @@ export function useInvoices() {
     void (async () => {
       const { data, error: failure } = await supabase
         .from('shop_invoices')
-        .select('id,supplier,printed_cents,total_cents,created_at,shop_invoice_lines(count)')
+        .select('id,supplier,printed_cents,total_cents,invoice_date,created_at,shop_invoice_lines(count)')
+        .order('invoice_date', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(30);
       if (failure) setError(failure.message);
@@ -135,14 +138,37 @@ export interface LineInput {
 }
 
 /** Saves the invoice, its lines, cost prices and stock in a single database transaction. */
-export async function saveInvoice(supplier: string, printedCents: number | null, lines: LineInput[]): Promise<string> {
+export async function saveInvoice(supplier: string, printedCents: number | null, date: string, lines: LineInput[]): Promise<string> {
   const { data, error } = await supabase.rpc('shop_save_invoice', {
     p_supplier: supplier,
     p_printed_cents: printedCents,
-    p_lines: lines.map((l) => ({ name: l.name, barcode: l.barcode, qty_milli: l.qtyMilli, unit_cents: l.unitCents })),
+    p_date: date,
+    p_lines: linesJson(lines),
   });
   if (error) throw error;
   return data as string;
+}
+
+/** Replaces an invoice's lines (stock and cost prices follow) and its header fields, atomically. */
+export async function updateInvoice(
+  id: string,
+  supplier: string,
+  printedCents: number | null,
+  date: string,
+  lines: LineInput[],
+): Promise<void> {
+  const { error } = await supabase.rpc('shop_update_invoice', {
+    p_id: id,
+    p_supplier: supplier,
+    p_printed_cents: printedCents,
+    p_date: date,
+    p_lines: linesJson(lines),
+  });
+  if (error) throw error;
+}
+
+function linesJson(lines: LineInput[]) {
+  return lines.map((l) => ({ name: l.name, barcode: l.barcode, qty_milli: l.qtyMilli, unit_cents: l.unitCents }));
 }
 
 export async function deleteInvoice(id: string): Promise<void> {
@@ -152,7 +178,7 @@ export async function deleteInvoice(id: string): Promise<void> {
 
 export async function loadInvoice(id: string): Promise<{ invoice: ShopInvoice; lines: ShopLine[] } | null> {
   const [i, l] = await Promise.all([
-    supabase.from('shop_invoices').select('id,supplier,printed_cents,total_cents,created_at').eq('id', id).maybeSingle(),
+    supabase.from('shop_invoices').select('id,supplier,printed_cents,total_cents,invoice_date,created_at').eq('id', id).maybeSingle(),
     supabase.from('shop_invoice_lines').select('id,name,barcode,qty_milli,unit_cents').eq('invoice_id', id).order('position'),
   ]);
   if (i.error) throw i.error;

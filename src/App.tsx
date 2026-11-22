@@ -46,6 +46,7 @@ export default function App() {
       <Route path="scan" element={<Scan />} />
       <Route path="shop/invoice" element={<ShopInvoice />} />
       <Route path="shop/invoice/:id" element={<ShopInvoiceView />} />
+      <Route path="shop/invoice/:id/edit" element={<ShopInvoice />} />
       <Route path="shop/prices" element={<ShopPrices />} />
       <Route path="shop/receipts" element={<ShopReceipts />} />
       <Route path="shopping" element={<Shopping />} />

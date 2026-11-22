@@ -37,12 +37,16 @@ export function lineTotal(qtyMilli: number, unitCents: number): number {
   return Math.floor((qtyMilli * unitCents + 500) / 1000);
 }
 
+/** Wraps text in a left-to-right isolate so numbers never get re-ordered inside Arabic (right-to-left) text. */
+export function ltr(text: string): string {
+  return `\u2066${text}\u2069`;
+}
+
 function group(n: string): string {
   return n.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-/** 1234567 -> "12 345.67" */
-export function formatMoney(cents: number): string {
+function rawMoney(cents: number): string {
   const sign = cents < 0 ? '-' : '';
   const abs = Math.abs(cents);
   const whole = Math.floor(abs / 100);
@@ -50,12 +54,22 @@ export function formatMoney(cents: number): string {
   return `${sign}${group(String(whole))}.${frac}`;
 }
 
+/** 1234567 -> "12 345.67" (kept in one left-to-right piece) */
+export function formatMoney(cents: number): string {
+  return ltr(rawMoney(cents));
+}
+
 export function formatMoneyCur(cents: number): string {
-  return `${formatMoney(cents)} ${CURRENCY}`;
+  return ltr(`${rawMoney(cents)} ${CURRENCY}`);
 }
 
 /** 2500 -> "2.5", 3000 -> "3" */
 export function formatQty(milli: number): string {
+  return ltr(qtyToInput(milli));
+}
+
+/** Quantity as editable text for an input: 2500 -> "2.5" (no direction marks). */
+export function qtyToInput(milli: number): string {
   const sign = milli < 0 ? '-' : '';
   const abs = Math.abs(milli);
   const whole = Math.floor(abs / 1000);
@@ -100,5 +114,5 @@ export function margin(costCents: number, sellCents: number): { profit: number; 
 export function formatPercentTenths(tenths: number): string {
   const sign = tenths < 0 ? '-' : '';
   const abs = Math.abs(tenths);
-  return `${sign}${Math.floor(abs / 10)}.${abs % 10}%`;
+  return ltr(`${sign}${Math.floor(abs / 10)}.${abs % 10}%`);
 }

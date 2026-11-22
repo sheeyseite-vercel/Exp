@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { BackButton, ErrorBanner } from '../components/ui';
 import { t } from '../lib/i18n';
@@ -8,6 +8,7 @@ import {
   formatMoney,
   formatMoneyCur,
   formatQty,
+  qtyToInput,
   invoiceTotal,
   lineTotal,
   parseMoney,
@@ -15,7 +16,8 @@ import {
   reconcile,
 } from '../lib/money';
 import { scanBarcodeText } from '../lib/scanner';
-import { errText, findProductByBarcode, saveInvoice, useShopProducts, type ShopProduct } from '../lib/shop';
+import { errText, findProductByBarcode, loadInvoice, saveInvoice, updateInvoice, useShopProducts, type ShopProduct } from '../lib/shop';
+import { todayISO } from './Shop';
 
 interface Line {
   key: string;
@@ -30,6 +32,7 @@ const DRAFT_KEY = 'salahiyati:invoice-draft';
 interface Draft {
   supplier: string;
   printed: string;
+  date: string;
   lines: Line[];
 }
 
@@ -38,12 +41,12 @@ function loadDraft(): Draft {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (raw) {
       const d = JSON.parse(raw) as Draft;
-      if (Array.isArray(d.lines)) return { supplier: d.supplier ?? '', printed: d.printed ?? '', lines: d.lines };
+      if (Array.isArray(d.lines)) return { supplier: d.supplier ?? '', printed: d.printed ?? '', date: d.date || todayISO(), lines: d.lines };
     }
   } catch {
     /* storage unavailable or corrupt */
   }
-  return { supplier: '', printed: '', lines: [] };
+  return { supplier: '', printed: '', date: todayISO(), lines: [] };
 }
 
 function saveDraft(d: Draft) {
@@ -57,10 +60,13 @@ function saveDraft(d: Draft) {
 /** Enter the items of a supplier receipt; totals and the difference to the printed total are exact. */
 export default function ShopInvoice() {
   const navigate = useNavigate();
-  const initial = useMemo(loadDraft, []);
+  const { id } = useParams();
+  const editing = Boolean(id);
+  const initial = useMemo<Draft>(() => (id ? { supplier: '', printed: '', date: todayISO(), lines: [] } : loadDraft()), [id]);
   const { products } = useShopProducts();
   const [supplier, setSupplier] = useState(initial.supplier);
   const [printed, setPrinted] = useState(initial.printed);
+  const [date, setDate] = useState(initial.date);
   const [lines, setLines] = useState<Line[]>(initial.lines);
   const [barcode, setBarcode] = useState('');
   const [name, setName] = useState('');
@@ -75,7 +81,34 @@ export default function ShopInvoice() {
   const qtyRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => saveDraft({ supplier, printed, lines }), [supplier, printed, lines]);
+  useEffect(() => {
+    if (!editing) saveDraft({ supplier, printed, date, lines });
+  }, [editing, supplier, printed, date, lines]);
+
+  // Editing a saved invoice: load its header and lines into the form.
+  useEffect(() => {
+    if (!id) return;
+    void loadInvoice(id)
+      .then((data) => {
+        if (!data) {
+          setError(t('inv_missing'));
+          return;
+        }
+        setSupplier(data.invoice.supplier ?? '');
+        setPrinted(data.invoice.printed_cents === null ? '' : centsToInput(data.invoice.printed_cents));
+        setDate(data.invoice.invoice_date);
+        setLines(
+          data.lines.map((l) => ({
+            key: l.id,
+            barcode: l.barcode,
+            name: l.name,
+            qtyMilli: l.qty_milli,
+            unitCents: l.unit_cents,
+          })),
+        );
+      })
+      .catch((e) => setError(errText(e)));
+  }, [id]);
 
   const computed = invoiceTotal(lines);
   const totalQty = lines.reduce((s, l) => s + l.qtyMilli, 0);
@@ -163,7 +196,7 @@ export default function ShopInvoice() {
     setLines((prev) => prev.filter((l) => l.key !== line.key));
     setBarcode(line.barcode ?? '');
     setName(line.name);
-    setQty(formatQty(line.qtyMilli));
+    setQty(qtyToInput(line.qtyMilli));
     setPrice(centsToInput(line.unitCents));
     setKnown(null);
   }
@@ -181,17 +214,18 @@ export default function ShopInvoice() {
     setBusy(true);
     setError(null);
     try {
-      const id = await saveInvoice(
-        supplier,
-        printedCents,
-        lines.map((l) => ({ name: l.name, barcode: l.barcode, qtyMilli: l.qtyMilli, unitCents: l.unitCents })),
-      );
-      try {
-        localStorage.removeItem(DRAFT_KEY);
-      } catch {
-        /* storage unavailable */
+      const payload = lines.map((l) => ({ name: l.name, barcode: l.barcode, qtyMilli: l.qtyMilli, unitCents: l.unitCents }));
+      let target = id;
+      if (id) await updateInvoice(id, supplier, printedCents, date || todayISO(), payload);
+      else {
+        target = await saveInvoice(supplier, printedCents, date || todayISO(), payload);
+        try {
+          localStorage.removeItem(DRAFT_KEY);
+        } catch {
+          /* storage unavailable */
+        }
       }
-      navigate(`/shop/invoice/${id}`, { replace: true });
+      navigate(`/shop/invoice/${target}`, { replace: true });
     } catch (e) {
       setError(errText(e));
       setBusy(false);
@@ -201,14 +235,15 @@ export default function ShopInvoice() {
   function clearDraft() {
     setSupplier('');
     setPrinted('');
+    setDate(todayISO());
     setLines([]);
   }
 
   return (
     <div className="page page-narrow inv-page">
       <header className="form-head">
-        <BackButton to="/shop" />
-        <h1>{t('inv_new')}</h1>
+        <BackButton to={id ? `/shop/invoice/${id}` : '/shop'} />
+        <h1>{editing ? t('inv_edit_title') : t('inv_new')}</h1>
       </header>
       <ErrorBanner message={error} />
 
@@ -216,6 +251,10 @@ export default function ShopInvoice() {
         <label className="field">
           <span className="field-label">{t('inv_supplier')}</span>
           <input type="text" value={supplier} maxLength={80} onChange={(e) => setSupplier(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field-label">{t('inv_date')}</span>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
         <label className="field">
           <span className="field-label">{t('inv_printed')}</span>
@@ -384,9 +423,9 @@ export default function ShopInvoice() {
 
       <button type="button" className="btn btn-primary" disabled={busy || lines.length === 0 || printedInvalid} onClick={() => void save()}>
         <Icon name="check" size={18} stroke={2.4} />
-        {t('inv_save')}
+        {editing ? t('inv_update') : t('inv_save')}
       </button>
-      {(lines.length > 0 || supplier || printed) && (
+      {!editing && (lines.length > 0 || supplier || printed) && (
         <button type="button" className="btn btn-soft" onClick={clearDraft}>
           {t('inv_discard')}
         </button>

@@ -460,6 +460,12 @@ const ar = {
   pin_set: "تفعيل",
   pin_change: "تغيير",
   pin_remove: "إزالة",
+  inv_items_n: "{n} سلعة",
+  inv_date: "تاريخ الوصل",
+  inv_edit: "تعديل الوصل",
+  inv_edit_title: "تعديل الوصل",
+  inv_update: "حفظ التعديلات",
+  cat_photo: "صورة القسم",
 };
 
 type Dict = Record<keyof typeof ar, string>;
@@ -858,6 +864,12 @@ const fr: Dict = {
   pin_set: "Activer",
   pin_change: "Modifier",
   pin_remove: "Retirer",
+  inv_items_n: "{n} articles",
+  inv_date: "Date du reçu",
+  inv_edit: "Modifier la facture",
+  inv_edit_title: "Modifier la facture",
+  inv_update: "Enregistrer les modifications",
+  cat_photo: "Photo du rayon",
 };
 
 const en: Dict = {
@@ -1254,6 +1266,12 @@ const en: Dict = {
   pin_set: "Turn on",
   pin_change: "Change",
   pin_remove: "Remove",
+  inv_items_n: "{n} items",
+  inv_date: "Receipt date",
+  inv_edit: "Edit invoice",
+  inv_edit_title: "Edit invoice",
+  inv_update: "Save changes",
+  cat_photo: "Category photo",
 };
 
 const DICTS: Record<Lang, Dict> = { ar, fr, en };

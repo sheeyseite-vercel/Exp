@@ -13,7 +13,7 @@ import type { CatProduct, Unit } from '../lib/types';
 export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const { cat } = useParams();
   const navigate = useNavigate();
-  const { categories, products, loaded, error, addCategory, deleteCategory, addProduct, deleteProduct } = useCatalog();
+  const { categories, products, loaded, error, addCategory, setCategoryPhoto, deleteCategory, addProduct, deleteProduct } = useCatalog();
   const [edit, setEdit] = useState(manage);
   const [selected, setSelected] = useState<CatProduct | null>(null);
   const [unit, setUnit] = useState<Unit>('box');
@@ -24,6 +24,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const [brand, setBrand] = useState('');
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [busy, setBusy] = useState(false);
+  const [coverBusy, setCoverBusy] = useState(false);
   const [confirm, setConfirm] = useState<string | null>(null);
 
   const base = manage ? '/catalog' : '/shopping/add';
@@ -162,6 +163,25 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
       {note && !editing && (
         <div className="banner banner-mint" role="status">
           {note}
+        </div>
+      )}
+
+      {editing && category && (
+        <div className="card cover-edit">
+          <PhotoTile path={category.photo_path} label={category.name} className="cover-thumb" />
+          <div className="cover-edit-body">
+            <strong>{t('cat_photo')}</strong>
+            <PhotoPick
+              file={null}
+              onFile={async (blob) => {
+                if (!blob) return;
+                setCoverBusy(true);
+                await setCategoryPhoto(category.id, blob);
+                setCoverBusy(false);
+              }}
+            />
+            {coverBusy && <span className="muted small">{t('loading')}</span>}
+          </div>
         </div>
       )}
 

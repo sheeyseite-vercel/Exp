@@ -61,6 +61,23 @@ export function useCatalog() {
     [reload],
   );
 
+  const setCategoryPhoto = useCallback(
+    async (id: string, photo: Blob) => {
+      try {
+        const old = categories.find((c) => c.id === id)?.photo_path ?? null;
+        const photo_path = await uploadPhoto(photo);
+        if (!photo_path) return;
+        const { error: failure } = await supabase.from('catalog_categories').update({ photo_path }).eq('id', id);
+        if (failure) throw failure;
+        if (old) await supabase.storage.from(PHOTO_BUCKET).remove([old]);
+        await reload();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String((e as { message?: string }).message ?? e));
+      }
+    },
+    [categories, reload],
+  );
+
   const deleteCategory = useCallback(
     async (id: string) => {
       const { error: failure } = await supabase.from('catalog_categories').delete().eq('id', id);
@@ -95,5 +112,5 @@ export function useCatalog() {
     [reload],
   );
 
-  return { categories, products, loaded, error, addCategory, deleteCategory, addProduct, deleteProduct };
+  return { categories, products, loaded, error, addCategory, setCategoryPhoto, deleteCategory, addProduct, deleteProduct };
 }

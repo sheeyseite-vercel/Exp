@@ -3467,3 +3467,52 @@ html[dir='ltr'] .rtl-flip {
   font-weight: 500;
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5);
 }
+
+.cover-edit {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--surface);
+}
+.cover-thumb.ptile {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  overflow: hidden;
+  border-radius: 20px;
+}
+.cover-edit-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+.edit-btn {
+  margin-inline-start: auto;
+}
+.inv-head .field input[type='date'] {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 500 16px var(--font);
+}
+/* Numbers read left-to-right even inside Arabic text. */
+.inv-line-total,
+.inv-sum-total,
+.price-cost strong,
+.money-input input,
+.inv-form input[inputmode='decimal'],
+.inv-head input[inputmode='decimal'] {
+  unicode-bidi: plaintext;
+}
+.money-input input,
+.inv-form input[inputmode='decimal'] {
+  direction: ltr;
+  text-align: start;
+}
