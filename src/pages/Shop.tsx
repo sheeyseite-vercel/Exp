@@ -20,17 +20,17 @@ function Tile({ to, icon, title, text, tone }: { to: string; icon: IconName; tit
   );
 }
 
-/** A timestamp as dd/mm/yyyy hh:mm, kept left-to-right. */
+/** A timestamp as dd.mm.yyyy hh:mm, kept left-to-right. */
 export function invoiceDate(iso: string): string {
   const d = new Date(iso);
   const p = (n: number) => String(n).padStart(2, '0');
-  return ltr(`${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`);
+  return ltr(`${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`);
 }
 
-/** A yyyy-mm-dd date as dd/mm/yyyy, kept left-to-right. */
+/** A yyyy-mm-dd date as dd.mm.yyyy, kept left-to-right. */
 export function dayText(day: string): string {
   const [y, m, d] = day.split('-');
-  return ltr(`${d}/${m}/${y}`);
+  return ltr(`${d}.${m}.${y}`);
 }
 
 export function todayISO(): string {
