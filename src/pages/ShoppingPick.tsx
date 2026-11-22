@@ -78,13 +78,12 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
                 event.preventDefault();
                 if (!name.trim()) return;
                 setBusy(true);
-                await addCategory(name, photo);
+                await addCategory(name);
                 setBusy(false);
                 resetForm();
               }}
             >
               <input type="text" value={name} maxLength={60} placeholder={t('cat_name_ph')} aria-label={t('cat_name_ph')} onChange={(e) => setName(e.target.value)} />
-              <PhotoPick file={photo} onFile={setPhoto} />
               <button type="submit" className="btn btn-primary" disabled={busy || !name.trim()}>
                 <Icon name="plus" size={18} stroke={2.4} />
                 {t('cat_add')}
@@ -128,7 +127,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
               {editing && (
                 <button
                   type="button"
-                  className="pick-del-btn"
+                  className={`pick-del-btn ${confirm === c.id ? 'armed' : ''}`}
                   aria-label={t('cat_delete')}
                   onClick={async () => {
                     if (confirm !== c.id) {
@@ -139,8 +138,8 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
                     await deleteCategory(c.id);
                   }}
                 >
-                  <Icon name="trash" size={16} />
-                  {confirm === c.id && <span>{t('confirm_again')}</span>}
+                  <Icon name="trash" size={22} />
+                  {confirm === c.id && <span>{t('confirm_word')}</span>}
                 </button>
               )}
             </div>
@@ -206,8 +205,21 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
               {p.brand && <span className="muted small">{p.brand}</span>}
             </button>
             {editing && (
-              <button type="button" className="pick-del-btn" aria-label={t('delete')} onClick={() => void deleteProduct(p.id)}>
-                <Icon name="trash" size={16} />
+              <button
+                type="button"
+                className={`pick-del-btn ${confirm === p.id ? 'armed' : ''}`}
+                aria-label={t('delete')}
+                onClick={async () => {
+                  if (confirm !== p.id) {
+                    setConfirm(p.id);
+                    return;
+                  }
+                  setConfirm(null);
+                  await deleteProduct(p.id);
+                }}
+              >
+                <Icon name="trash" size={22} />
+                {confirm === p.id && <span>{t('confirm_word')}</span>}
               </button>
             )}
           </div>
@@ -228,7 +240,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
           }}
         >
           <Icon name="trash" size={18} />
-          {confirm === 'cat' ? t('confirm_again') : t('cat_delete')}
+          {confirm === 'cat' ? t('confirm_word') : t('cat_delete')}
         </button>
       ) : (
         !manage && (

@@ -10,6 +10,7 @@ function tabs(): Tab[] {
   return [
     { to: '/', label: t('nav_home'), icon: 'home', end: true },
     { to: '/products', label: t('nav_products'), icon: 'cube' },
+    { to: '/shop', label: t('nav_shop'), icon: 'store' },
     { to: '/alerts', label: t('nav_alerts'), icon: 'bell' },
     { to: '/profile', label: t('nav_profile'), icon: 'user' },
   ];
@@ -83,6 +84,7 @@ export function AppShell() {
         </Link>
         <BottomTab tab={TABS[2]} />
         <BottomTab tab={TABS[3]} />
+        <BottomTab tab={TABS[4]} />
       </nav>
     </div>
   );

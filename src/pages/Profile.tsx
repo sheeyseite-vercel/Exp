@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { userDisplayName } from '../components/AppShell';
 import { GoogleLogo, Icon, type IconName } from '../components/Icon';
 import { LangMenu } from '../components/LangSwitch';
+import { PinSetup, type PinMode } from '../components/PinSetup';
+import { usePinState } from '../lib/pin';
 import { ErrorBanner, Switch } from '../components/ui';
-import { t, type TKey } from '../lib/i18n';
+import { t } from '../lib/i18n';
 import { exportProducts } from '../lib/export';
 import { sendTestNotification } from '../lib/notifications';
-import { setTheme, useTheme, type Theme } from '../lib/theme';
 import { useData } from '../state/DataProvider';
 
 function syncText(lastSync: Date | null): string {
@@ -52,7 +53,6 @@ export default function Profile() {
     updateDisplayName,
   } = useData();
   const name = userDisplayName(user);
-  const theme = useTheme();
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
   const thisMonth = history.filter((p) => p.consumed_at && new Date(p.consumed_at).getTime() >= monthStart);
   const discardedMonth = thisMonth.filter((p) => p.outcome === 'discarded').length;
@@ -60,6 +60,14 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
   const [nameError, setNameError] = useState<string | null>(null);
+  const { enabled: pinOn } = usePinState();
+  const [pinMode, setPinMode] = useState<PinMode | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 2400);
+    return () => window.clearTimeout(id);
+  }, [toast]);
   const [testing, setTesting] = useState(false);
   const [testNote, setTestNote] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -207,23 +215,30 @@ export default function Profile() {
       </Link>
 
       <div className="card set-card">
+        <SettingRow icon="lock" title={t('pin_row')} hint={t('pin_row_hint')}>
+          <span className={`chip ${pinOn ? 'chip-mint' : 'chip-peach'}`}>{pinOn ? t('pin_on') : t('pin_off')}</span>
+        </SettingRow>
+        <div className="pin-actions">
+          {pinOn ? (
+            <>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setPinMode('change')}>
+                {t('pin_change')}
+              </button>
+              <button type="button" className="btn btn-soft btn-sm" onClick={() => setPinMode('remove')}>
+                {t('pin_remove')}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => setPinMode('set')}>
+              {t('pin_set')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="card set-card">
         <SettingRow icon="globe" title={t('profile_language')}>
           <LangMenu />
-        </SettingRow>
-        <SettingRow icon="moon" title={t('theme_title')}>
-          <div className="seg" role="group" aria-label={t('theme_title')}>
-            {(['system', 'light', 'dark'] as Theme[]).map((item) => (
-              <button
-                key={item}
-                type="button"
-                aria-pressed={theme === item}
-                className={theme === item ? 'on' : ''}
-                onClick={() => setTheme(item)}
-              >
-                {t(`theme_${item}` as TKey)}
-              </button>
-            ))}
-          </div>
         </SettingRow>
         <SettingRow icon="bell" title={t('test_title')} hint={t('test_hint')}>
           <button type="button" className="btn btn-primary btn-sm" onClick={() => void runTest()} disabled={testing}>
@@ -263,6 +278,21 @@ export default function Profile() {
         <Icon name="logout" size={20} stroke={1.9} />
         {t('sign_out')}
       </button>
+
+      {pinMode && (
+        <PinSetup
+          mode={pinMode}
+          onClose={(message) => {
+            setPinMode(null);
+            if (message) setToast(message);
+          }}
+        />
+      )}
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

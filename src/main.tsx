@@ -6,6 +6,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
+import { LockGate } from './components/LockGate';
 import { useLang } from './lib/i18n';
 import { applyTheme } from './lib/theme';
 import './styles.css';
@@ -23,7 +24,9 @@ createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <HashRouter>
       <DataProvider>
-        <LocalizedApp />
+        <LockGate>
+          <LocalizedApp />
+        </LockGate>
       </DataProvider>
     </HashRouter>
   </StrictMode>,

@@ -32,9 +32,38 @@ export type IconName =
   | 'chevronDown'
   | 'cart'
   | 'download'
-  | 'moon';
+  | 'moon'
+  | 'store'
+  | 'receipt'
+  | 'lock'
+  | 'tag';
 
 const PATHS: Record<IconName, ReactNode> = {
+  store: (
+    <>
+      <path d="M4 9.5 5.6 4h12.8L20 9.5" />
+      <path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0" />
+      <path d="M5.5 12.5V20h13v-7.5M10 20v-4.5h4V20" />
+    </>
+  ),
+  receipt: (
+    <>
+      <path d="M6 3.5h12v17l-2.5-1.6-2 1.6-1.5-1.6-1.5 1.6-2-1.6L6 20.5z" />
+      <path d="M9 8.5h6M9 12h6M9 15.5h3" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="5" y="10.5" width="14" height="9.5" rx="2.5" />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+    </>
+  ),
+  tag: (
+    <>
+      <path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.5 1.5 0 0 1 0 2.1l-5.6 5.6a1.5 1.5 0 0 1-2.1 0z" />
+      <circle cx="8.3" cy="8.3" r="1.3" />
+    </>
+  ),
   cart: (
     <>
       <path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.1L20 8H6.2" />

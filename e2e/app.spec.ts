@@ -57,7 +57,11 @@ async function setup(page: Page, rows: Row[], settings: Row | null = null) {
     user,
   };
   await page.addInitScript(
-    ([key, value]) => localStorage.setItem(key, value),
+    ([key, value]) => {
+      localStorage.setItem(key, value);
+      // The app defaults to English; these tests were written against the Arabic UI.
+      if (!localStorage.getItem('salahiyati:lang')) localStorage.setItem('salahiyati:lang', 'ar');
+    },
     [`sb-${REF}-auth-token`, JSON.stringify(session)] as const,
   );
 

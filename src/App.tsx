@@ -9,6 +9,11 @@ import ProductForm from './pages/ProductForm';
 import Products from './pages/Products';
 import Profile from './pages/Profile';
 import Scan from './pages/Scan';
+import Shop from './pages/Shop';
+import ShopInvoice from './pages/ShopInvoice';
+import ShopInvoiceView from './pages/ShopInvoiceView';
+import ShopPrices from './pages/ShopPrices';
+import ShopReceipts from './pages/ShopReceipts';
 import ShoppingPick from './pages/ShoppingPick';
 import Shopping from './pages/Shopping';
 import { t } from './lib/i18n';
@@ -34,10 +39,15 @@ export default function App() {
       <Route element={<AppShell />}>
         <Route index element={<Home />} />
         <Route path="products" element={<Products />} />
+        <Route path="shop" element={<Shop />} />
         <Route path="alerts" element={<Alerts />} />
         <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="scan" element={<Scan />} />
+      <Route path="shop/invoice" element={<ShopInvoice />} />
+      <Route path="shop/invoice/:id" element={<ShopInvoiceView />} />
+      <Route path="shop/prices" element={<ShopPrices />} />
+      <Route path="shop/receipts" element={<ShopReceipts />} />
       <Route path="shopping" element={<Shopping />} />
       <Route path="shopping/add" element={<ShoppingPick />} />
       <Route path="shopping/add/:cat" element={<ShoppingPick />} />

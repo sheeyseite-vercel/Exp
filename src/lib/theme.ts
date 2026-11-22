@@ -4,14 +4,9 @@ export type Theme = 'system' | 'light' | 'dark';
 const KEY = 'salahiyati:theme';
 const listeners = new Set<() => void>();
 
+/** The app always opens in the light theme. */
 export function getTheme(): Theme {
-  try {
-    const v = localStorage.getItem(KEY);
-    if (v === 'light' || v === 'dark') return v;
-  } catch {
-    /* storage unavailable */
-  }
-  return 'system';
+  return 'light';
 }
 
 export function applyTheme(): void {
