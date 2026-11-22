@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { setLang } from '../src/lib/i18n';
+setLang('ar');
 import { notificationBody, parseTime, planNotifications } from '../src/lib/planner';
 import { DEFAULT_SETTINGS, type Product, type Settings } from '../src/lib/types';
 

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { setLang } from '../src/lib/i18n';
+setLang('ar');
 import { addDays, chipLabel, daysPhrase, daysUntil, formatDay, isValidISO, shelfProgress, statusOf } from '../src/lib/dates';
 
 const today = new Date(2026, 10, 17, 15, 30);
