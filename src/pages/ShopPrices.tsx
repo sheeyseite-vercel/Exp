@@ -340,16 +340,18 @@ export default function ShopPrices() {
           </div>
         </div>
 
-        <div className="price-cost">
-          <span>
-            {t('price_cost')}
-            <small className="muted">{t('price_cost_note')}</small>
+        <div className="ps-stats">
+          <span className="ps-stat ps-blue">
+            <small>{t('price_cost')}</small>
+            <strong>{formatMoneyCur(selected.cost_cents)}</strong>
           </span>
-          <strong>{formatMoneyCur(selected.cost_cents)}</strong>
+          <span className="ps-stat ps-green">
+            <small>{t('price_stock_label')}</small>
+            <strong>{formatQty(selected.stock_milli)}</strong>
+          </span>
         </div>
-        <span className="muted small">{t('price_stock', { q: formatQty(selected.stock_milli) })}</span>
 
-        <label className="field">
+        <label className="field ps-field">
           <span className="field-label">{t('price_sell')}</span>
           <span className="money-input">
             <input

@@ -7,11 +7,11 @@ import { useInvoices, useShopProducts } from '../lib/shop';
 
 function Tile({ to, icon, title, text, tone }: { to: string; icon: IconName; title: string; text: string; tone: string }) {
   return (
-    <Link to={to} className={`shop-tile st-${tone}`}>
-      <span className="shop-tile-icon">
-        <Icon name={icon} size={26} />
+    <Link to={to} className={`sh-tile sh-${tone}`}>
+      <span className="sh-icon">
+        <Icon name={icon} size={24} />
       </span>
-      <span className="shop-tile-text">
+      <span className="sh-text">
         <strong>{title}</strong>
         <span>{text}</span>
       </span>
@@ -53,13 +53,13 @@ export default function Shop() {
 
       <div className="shop-stats">
         <span className="chip chip-mint">{t('shop_stat_products', { n: products.length })}</span>
-        {noPrice > 0 && <span className="chip chip-sun">{t('shop_stat_noprice', { n: noPrice })}</span>}
+        {noPrice > 0 && <span className="chip chip-rose">{t('shop_stat_noprice', { n: noPrice })}</span>}
       </div>
 
       <div className="stack-sm">
-        <Tile to="/shop/invoice" icon="receipt" tone="sky" title={t('shop_invoice_t')} text={t('shop_invoice_d')} />
-        <Tile to="/shop/prices" icon="tag" tone="mint" title={t('shop_price_t')} text={t('shop_price_d')} />
-        <Tile to="/shop/receipts" icon="camera" tone="peach" title={t('shop_receipts_t')} text={t('shop_receipts_d')} />
+        <Tile to="/shop/invoice" icon="receipt" tone="blue" title={t('shop_invoice_t')} text={t('shop_invoice_d')} />
+        <Tile to="/shop/prices" icon="tag" tone="green" title={t('shop_price_t')} text={t('shop_price_d')} />
+        <Tile to="/shop/receipts" icon="camera" tone="red" title={t('shop_receipts_t')} text={t('shop_receipts_d')} />
       </div>
 
       <section className="stack-sm">

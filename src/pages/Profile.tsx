@@ -216,7 +216,7 @@ export default function Profile() {
 
       <div className="card set-card">
         <SettingRow icon="lock" title={t('pin_row')} hint={t('pin_row_hint')}>
-          <span className={`chip ${pinOn ? 'chip-mint' : 'chip-peach'}`}>{pinOn ? t('pin_on') : t('pin_off')}</span>
+          {null}
         </SettingRow>
         <div className="pin-actions">
           {pinOn ? (

@@ -479,6 +479,11 @@ const ar = {
   price_uncat: "بدون قسم",
   price_cat_empty: "لا منتجات في هذا القسم بعد",
   price_set: "حدّد السعر",
+  de_day: "يوم",
+  de_month: "شهر",
+  de_year: "سنة",
+  de_invalid: "تاريخ غير صحيح",
+  price_stock_label: "المخزون",
 };
 
 type Dict = Record<keyof typeof ar, string>;
@@ -896,6 +901,11 @@ const fr: Dict = {
   price_uncat: "Sans rayon",
   price_cat_empty: "Aucun produit dans ce rayon",
   price_set: "Fixer le prix",
+  de_day: "JJ",
+  de_month: "MM",
+  de_year: "AAAA",
+  de_invalid: "Date invalide",
+  price_stock_label: "Stock",
 };
 
 const en: Dict = {
@@ -1311,6 +1321,11 @@ const en: Dict = {
   price_uncat: "No category",
   price_cat_empty: "No products in this category yet",
   price_set: "Set price",
+  de_day: "DD",
+  de_month: "MM",
+  de_year: "YYYY",
+  de_invalid: "Invalid date",
+  price_stock_label: "In stock",
 };
 
 const DICTS: Record<Lang, Dict> = { ar, fr, en };

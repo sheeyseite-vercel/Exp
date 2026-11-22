@@ -28,7 +28,7 @@ function BottomTab({ tab }: { tab: Tab }) {
       <span className="tab-icon">
         <Icon name={tab.icon} />
       </span>
-      {tab.label}
+      <span className="tab-label">{tab.label}</span>
     </NavLink>
   );
 }
