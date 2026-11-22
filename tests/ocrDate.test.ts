@@ -24,3 +24,19 @@ describe('findExpiryDate', () => {
     expect(findExpiryDate('زبادي طبيعي 125 غ')).toBeNull();
   });
 });
+
+describe('findExpiryDate on messy label text', () => {
+  it('reads the printed example from a bottle cap', () => {
+    expect(findExpiryDate('F:28/10/26 08:49\nE:04/2029 LOT:282371')).toBe('2029-04-30');
+    expect(findExpiryDate('F: 28/10/26 08:49 E: 04/2029 LOT:282371')).toBe('2029-04-30');
+  });
+  it('handles OCR letter/digit mix-ups and compact forms', () => {
+    expect(findExpiryDate('EXP 3O/04/2029')).toBe('2029-04-30');
+    expect(findExpiryDate('EXP 300429')).toBe('2029-04-30');
+    expect(findExpiryDate('BB 2029/04')).toBe('2029-04-30');
+    expect(findExpiryDate('A consommer avant le 15 JUIN 2028')).toBe('2028-06-15');
+  });
+  it('prefers the expiry over a production date', () => {
+    expect(findExpiryDate('PROD 01/01/2026\nEXP 01/01/2027')).toBe('2027-01-01');
+  });
+});

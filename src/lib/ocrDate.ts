@@ -8,7 +8,7 @@ const MONTH_WORDS: Record<string, number> = {
   may: 5, mai: 5,
   jun: 6, juin: 6, june: 6,
   jul: 7, juil: 7, july: 7, juillet: 7,
-  aug: 8, aou: 8, aoû: 8, août: 8, august: 8,
+  aug: 8, aou: 8, aoû: 8, août: 8, aout: 8, august: 8,
   sep: 9, sept: 9, september: 9, septembre: 9,
   oct: 10, october: 10, octobre: 10,
   nov: 11, november: 11, novembre: 11,
@@ -30,29 +30,58 @@ function fullYear(raw: string): number {
   return raw.length === 2 ? 2000 + n : n;
 }
 
-const KEYWORD = /(exp|bbe|bb|dlc|ddm|dluo|best before|use by|consommer|ينتهي|الانتهاء)/i;
+// Words printed next to the expiry date (E:, EXP, BBE, DLC, ينتهي …) and next to the production date (F:, MFG, PROD, FAB …).
+const EXPIRY = /(?:^|[^a-z])(?:exp|exd|ed|e|bbe|bb|bbd|dlc|dluo|ddm|dluo|use\s*by|best\s*before|consommer|a\s*consommer|à\s*consommer|jusqu|avant)(?![a-z])|ينتهي|الانتهاء|الصلاحية|صالح/i;
+const PRODUCTION = /(?:^|[^a-z])(?:mfg|mfd|prod|pd|p|f|fab|fabr|fabriqu[ée]?|pack|packed|cond|lot)(?![a-z])|الإنتاج|الانتاج|التصنيع/i;
+
+/** Fixes the usual OCR mix-ups (O for 0, l for 1) around digits and separators. */
+function clean(text: string): string {
+  return text
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x6f0))
+    .replace(/(?<=[\d./\-:\s])[Oo](?=[\d./\-:])|(?<=\d)[Oo](?=[\s./\-:]|$)|(?<![A-Za-z])[Oo](?=\d)/g, '0')
+    .replace(/(?<=\d)[lI|](?=[\d./\-])|(?<=[./\-])[lI|](?=\d)/g, '1')
+    .replace(/[,;]/g, '.');
+}
+
+interface Hit {
+  date: string;
+  keyed: boolean;
+  production: boolean;
+}
 
 export function findExpiryDate(text: string): string | null {
-  const flat = text.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x660)); // Arabic-Indic digits
-  const lines = flat.split(/\r?\n/);
-  const found: { date: string; keyed: boolean }[] = [];
+  const lines = clean(text).split(/\r?\n/);
+  const found: Hit[] = [];
 
   for (const line of lines) {
-    const keyed = KEYWORD.test(line);
-    const add = (date: string | null) => date && found.push({ date, keyed });
+    const keyed = EXPIRY.test(line);
+    const production = !keyed && PRODUCTION.test(line);
+    const add = (date: string | null) => date && found.push({ date, keyed, production });
 
-    for (const m of line.matchAll(/\b(\d{4})[./\-](\d{1,2})[./\-](\d{1,2})\b/g)) add(iso(+m[1], +m[2], +m[3]));
-    for (const m of line.matchAll(/\b(\d{1,2})[./\-\s](\d{1,2})[./\-\s](\d{4}|\d{2})\b/g)) {
+    // 2029-04-30, 2029/04/30
+    for (const m of line.matchAll(/(?<!\d)(20\d{2})\s*[./\-]\s*(\d{1,2})\s*[./\-]\s*(\d{1,2})(?!\d)/g)) add(iso(+m[1], +m[2], +m[3]));
+    // 30/04/2029, 30.04.29, 30-04-2029, 30 04 2029 (day first, as printed in Algeria and France)
+    for (const m of line.matchAll(/(?<![\d./\-])(\d{1,2})\s*[./\-\s]\s*(\d{1,2})\s*[./\-\s]\s*(\d{4}|\d{2})(?![\d/])/g)) {
       add(iso(fullYear(m[3]), +m[2], +m[1]));
     }
-    for (const m of line.matchAll(/(?<![\d./\-])(\d{1,2})[./\-](\d{4})\b/g)) add(iso(+m[2], +m[1], daysIn(+m[2], +m[1])));
+    // 04/2029, 04.2029 → end of that month
+    for (const m of line.matchAll(/(?<![\d./\-])(\d{1,2})\s*[./\-]\s*(20\d{2})(?!\d)/g)) add(iso(+m[2], +m[1], daysIn(+m[2], +m[1])));
+    // 2029/04
+    for (const m of line.matchAll(/(?<![\d./\-])(20\d{2})\s*[./\-]\s*(\d{1,2})(?![\d./\-])/g)) add(iso(+m[1], +m[2], daysIn(+m[1], +m[2])));
     if (keyed) {
-      for (const m of line.matchAll(/\b(\d{1,2})[./\-\s](\d{2})\b/g)) {
+      // 04/29 right after an expiry word
+      for (const m of line.matchAll(/(?<![\d./\-])(\d{1,2})\s*[./\-]\s*(\d{2})(?![\d./\-])/g)) {
         const month = +m[1];
         if (month >= 1 && month <= 12) add(iso(2000 + +m[2], month, daysIn(2000 + +m[2], month)));
       }
+      // compact: 300429 (ddmmyy), 20290430 (yyyymmdd), 042029 (mmyyyy)
+      for (const m of line.matchAll(/(?<!\d)(\d{2})(\d{2})(\d{2})(?!\d)/g)) add(iso(2000 + +m[3], +m[2], +m[1]));
+      for (const m of line.matchAll(/(?<!\d)(20\d{2})(\d{2})(\d{2})(?!\d)/g)) add(iso(+m[1], +m[2], +m[3]));
+      for (const m of line.matchAll(/(?<!\d)(\d{2})(20\d{2})(?!\d)/g)) add(iso(+m[2], +m[1], daysIn(+m[2], +m[1])));
     }
-    for (const m of line.matchAll(/\b(\d{1,2})?\s*([a-zA-Zéèûôàç]{3,9})\.?\s*[-/]?\s*(\d{4}|\d{2})\b/g)) {
+    // 30 AVR 2029, AVR 2029, 04 APR.29
+    for (const m of line.matchAll(/(?<!\d)(\d{1,2})?\s*([a-zA-Zéèûôàç]{3,9})\.?\s*[-/.]?\s*(\d{4}|\d{2})(?!\d)/g)) {
       const month = MONTH_WORDS[m[2].toLowerCase()];
       if (!month) continue;
       const year = fullYear(m[3]);
@@ -61,6 +90,8 @@ export function findExpiryDate(text: string): string | null {
   }
 
   if (found.length === 0) return null;
-  const pool = found.some((f) => f.keyed) ? found.filter((f) => f.keyed) : found;
+  const keyed = found.filter((f) => f.keyed);
+  const notProduction = found.filter((f) => !f.production);
+  const pool = keyed.length ? keyed : notProduction.length ? notProduction : found;
   return pool.map((f) => f.date).sort().at(-1) ?? null;
 }

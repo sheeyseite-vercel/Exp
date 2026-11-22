@@ -4,7 +4,7 @@ import type { Category } from './types';
 export const CATEGORY_IDS: Category[] = ['dairy', 'meat', 'canned', 'bakery', 'other'];
 
 export function categoryLabel(id: Category): string {
-  return t(`cat_${id}` as TKey);
+  return CATEGORY_IDS.includes(id) ? t(`cat_${id}` as TKey) : id;
 }
 
 /** Icon used on a product tile. */

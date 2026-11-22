@@ -235,9 +235,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         input.photo_path !== undefined ? input.photo_path : (previous?.photo_path ?? null);
 
       if (photo) {
-        const path = `${uid}/${crypto.randomUUID()}.jpg`;
+        const isPng = photo.type === 'image/png';
+        const path = `${uid}/${crypto.randomUUID()}.${isPng ? 'png' : 'jpg'}`;
         const upload = await supabase.storage.from(PHOTO_BUCKET).upload(path, photo, {
-          contentType: 'image/jpeg',
+          contentType: isPng ? 'image/png' : 'image/jpeg',
           upsert: false,
         });
         if (upload.error) throw upload.error;

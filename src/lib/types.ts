@@ -1,4 +1,5 @@
-export type Category = 'dairy' | 'meat' | 'canned' | 'bakery' | 'other';
+/** One of the built-in ids, or any name the person typed. */
+export type Category = string;
 
 export type Location = 'fridge' | 'freezer' | 'pantry' | 'other';
 export const LOCATIONS: Location[] = ['fridge', 'freezer', 'pantry', 'other'];

@@ -4059,3 +4059,101 @@ html[dir='ltr'] .rtl-flip {
 .sheet-tall .btn {
   min-height: 48px;
 }
+
+/* ---- profile edit: tidy, evenly spaced -------------------------------------------------------- */
+.pf-head.pf-head-edit {
+  gap: 20px;
+  padding: 24px 20px 20px;
+}
+.pf-head-edit .avatar-lg {
+  width: 84px;
+  height: 84px;
+  font-size: 34px;
+}
+.pf-head .name-edit {
+  gap: 10px;
+}
+.pf-head .name-edit .field-label {
+  padding-inline: 4px;
+}
+.pf-head .name-edit input {
+  height: 56px;
+  text-align: start;
+}
+.pf-head .name-edit input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 111, 240, 0.18);
+}
+.pf-head .name-edit-actions {
+  gap: 12px;
+  margin-top: 10px;
+}
+.pf-head .name-edit-actions .btn {
+  height: 50px;
+  min-height: 50px;
+  justify-content: center;
+  font-size: 16px;
+}
+
+/* ---- product photos: the product alone, softly lifted, no background ----------------------- */
+.ptile-cut,
+.thumb-cut {
+  background: transparent !important;
+}
+.ptile-cut img,
+.thumb-cut img {
+  object-fit: contain;
+  filter: drop-shadow(0 6px 6px rgba(23, 35, 63, 0.22));
+}
+.cat-cover.ptile-cut {
+  background: #f2f6fd !important;
+}
+.photo-box-cut {
+  border-style: solid;
+  background: #fff;
+}
+.photo-box-cut img {
+  object-fit: contain;
+  filter: drop-shadow(0 6px 6px rgba(23, 35, 63, 0.25));
+}
+.photo-busy {
+  position: absolute;
+  inset: auto 6px 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(23, 35, 63, 0.75);
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+}
+.cat-type {
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #d5def2;
+  border-radius: 16px;
+  background: var(--surface);
+  font: 600 16px var(--font);
+}
+.cat-type:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+.date-cam {
+  min-height: 62px;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 16px;
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+}
+.date-row .remaining {
+  margin: 0;
+}

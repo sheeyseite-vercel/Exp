@@ -2,6 +2,23 @@ import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning
 import { t } from './i18n';
 import { isNative } from './supabase';
 
+/** Every code type the scanner knows: product barcodes, industrial codes, 2D codes. */
+export const ALL_FORMATS = [
+  BarcodeFormat.Ean13,
+  BarcodeFormat.Ean8,
+  BarcodeFormat.UpcA,
+  BarcodeFormat.UpcE,
+  BarcodeFormat.Code128,
+  BarcodeFormat.Code39,
+  BarcodeFormat.Code93,
+  BarcodeFormat.Codabar,
+  BarcodeFormat.Itf,
+  BarcodeFormat.QrCode,
+  BarcodeFormat.DataMatrix,
+  BarcodeFormat.Aztec,
+  BarcodeFormat.Pdf417,
+];
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function ensureModule(): Promise<void> {
@@ -21,15 +38,7 @@ export async function scanBarcodeText(): Promise<string | null> {
   await ensureModule();
   try {
     const { barcodes } = await BarcodeScanner.scan({
-      formats: [
-        BarcodeFormat.Ean13,
-        BarcodeFormat.Ean8,
-        BarcodeFormat.UpcA,
-        BarcodeFormat.UpcE,
-        BarcodeFormat.Code128,
-        BarcodeFormat.Code39,
-        BarcodeFormat.QrCode,
-      ],
+      formats: ALL_FORMATS,
     });
     return (barcodes[0]?.rawValue ?? barcodes[0]?.displayValue ?? '').trim() || null;
   } catch (failure) {

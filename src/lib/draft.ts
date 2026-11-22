@@ -7,6 +7,8 @@ export interface Draft {
   expiry?: string;
   barcode?: string;
   photo?: Blob;
+  /** A photo already stored for the same product. */
+  photoPath?: string;
 }
 
 let current: Draft | null = null;

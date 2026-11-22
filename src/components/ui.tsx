@@ -23,7 +23,7 @@ export function Thumb({ product, size = 52 }: { product: Product; size?: number 
   const url = usePhotoUrl(product.photo_path);
   const tone = toneOf(statusOf(daysUntil(product.expiry_date)));
   return (
-    <span className={`thumb tone-${tone}`} style={{ width: size, height: size }}>
+    <span className={`thumb tone-${tone} ${product.photo_path?.endsWith('.png') ? 'thumb-cut' : ''}`} style={{ width: size, height: size }}>
       {url ? <img src={url} alt="" /> : <Icon name={categoryIcon(product.category)} size={Math.round(size * 0.46)} />}
     </span>
   );

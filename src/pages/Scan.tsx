@@ -1,4 +1,4 @@
-import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
@@ -9,6 +9,8 @@ import { compressImage } from '../lib/image';
 import { lookupBarcode } from '../lib/openfoodfacts';
 import { parseScan } from '../lib/qr';
 import { isNative } from '../lib/supabase';
+import { useData } from '../state/DataProvider';
+import { ALL_FORMATS } from '../lib/scanner';
 import type { Category } from '../lib/types';
 
 type Mode = 'qr' | 'photo';
@@ -20,6 +22,7 @@ interface Result {
   barcode?: string;
   category?: Category;
   photo?: Blob;
+  photoPath?: string;
   previewUrl?: string;
 }
 
@@ -40,6 +43,7 @@ async function ensureScannerModule(): Promise<void> {
 
 export default function Scan() {
   const navigate = useNavigate();
+  const { products } = useData();
   const [mode, setMode] = useState<Mode>('qr');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,15 +69,7 @@ export default function Scan() {
     try {
       await ensureScannerModule();
       const { barcodes } = await BarcodeScanner.scan({
-        formats: [
-          BarcodeFormat.QrCode,
-          BarcodeFormat.Ean13,
-          BarcodeFormat.Ean8,
-          BarcodeFormat.UpcA,
-          BarcodeFormat.UpcE,
-          BarcodeFormat.Code128,
-          BarcodeFormat.DataMatrix,
-        ],
+        formats: ALL_FORMATS,
       });
       const raw = barcodes[0]?.rawValue ?? barcodes[0]?.displayValue ?? '';
       if (!raw) {
@@ -83,6 +79,14 @@ export default function Scan() {
       const info = parseScan(raw);
       let name = info.name;
       let category: Category | undefined;
+      let photoPath: string | undefined;
+      // A product you already added once is recognised by its barcode, whatever the databases know.
+      const mine = info.barcode ? products.find((p) => p.barcode === info.barcode) : undefined;
+      if (mine) {
+        name = mine.name;
+        category = mine.category;
+        photoPath = mine.photo_path ?? undefined;
+      }
       if (!name && info.barcode) {
         const food = await lookupBarcode(info.barcode);
         if (food) {
@@ -90,7 +94,7 @@ export default function Scan() {
           category = food.category;
         }
       }
-      setResult({ kind: 'code', name, expiry: info.expiry, barcode: info.barcode, category });
+      setResult({ kind: 'code', name, expiry: info.expiry, barcode: info.barcode, category, photoPath });
     } catch (failure) {
       const message = failure instanceof Error ? failure.message : '';
       if (!/cancel/i.test(message)) setError(message || t('scan_fail'));
@@ -104,7 +108,7 @@ export default function Scan() {
     setError(null);
     setBusy(true);
     try {
-      const photo = await compressImage(file);
+      const photo = await compressImage(file, 1600, 0.88);
       setResult({ kind: 'photo', photo, previewUrl: URL.createObjectURL(photo) });
     } catch {
       setError(t('photo_fail'));
@@ -121,6 +125,7 @@ export default function Scan() {
       expiry: result.expiry,
       barcode: result.barcode,
       photo: result.photo,
+      photoPath: result.photoPath,
     });
     navigate('/product/new');
   }

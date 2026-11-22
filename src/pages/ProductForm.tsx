@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { DateEntry } from '../components/DateEntry';
 import { Icon } from '../components/Icon';
+import { PhotoPick } from '../components/PhotoPick';
 import { BackButton } from '../components/ui';
 import { CATEGORY_IDS, categoryLabel } from '../lib/categories';
+import { cutoutProduct } from '../lib/cutout';
 import { readDateFromPhoto } from '../lib/ocr';
 import { addDays, daysPhrase, daysUntil, formatFull, isValidISO, toISO } from '../lib/dates';
 import { getDraft, setDraft } from '../lib/draft';
 import { t, type TKey } from '../lib/i18n';
-import { compressImage } from '../lib/image';
 import { normalizeText, productKey } from '../lib/text';
 import { LOCATIONS, type Category, type Location } from '../lib/types';
 import { useData } from '../state/DataProvider';
@@ -43,10 +45,13 @@ export default function ProductForm() {
   const [ocrNote, setOcrNote] = useState<string | null>(null);
   const [expiry, setExpiry] = useState(draft?.expiry ?? '');
   const [qtyText, setQtyText] = useState('1');
-  const [reusePath, setReusePath] = useState<string | null>(null);
+  const [reusePath, setReusePath] = useState<string | null>(draft?.photoPath ?? null);
+  const [rawPhoto, setRawPhoto] = useState<Blob | null>(draft?.photo ?? null);
+  const [cutting, setCutting] = useState(false);
+  const [catText, setCatText] = useState('');
   const [remind, setRemind] = useState<number[] | null>(null);
   const [barcode, setBarcode] = useState<string | null>(draft?.barcode ?? null);
-  const [photo, setPhoto] = useState<Blob | null>(draft?.photo ?? null);
+  const [photo, setPhoto] = useState<Blob | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customValue, setCustomValue] = useState('');
@@ -80,6 +85,7 @@ export default function ProductForm() {
   );
   const storedPreview = usePhotoUrl(removePhoto ? null : (existing?.photo_path ?? reusePath));
   const preview = localPreview ?? storedPreview;
+  const isCut = photo ? photo.type === 'image/png' : (removePhoto ? null : (existing?.photo_path ?? reusePath))?.endsWith('.png') === true;
 
   const parsedQty = Number.parseInt(qtyText, 10);
   const quantity = Number.isFinite(parsedQty) ? Math.max(1, Math.min(999, parsedQty)) : 1;
@@ -131,14 +137,60 @@ export default function ProductForm() {
     setCustomOpen(false);
   }
 
-  async function onPhoto(file: File | undefined) {
+  /** Keeps the original for reading dates, and shows the product alone on a clean background. */
+  async function onPhoto(file: Blob | null) {
     if (!file) return;
+    setError(null);
+    setRawPhoto(file);
+    setRemovePhoto(false);
+    setReusePath(null);
+    setCutting(true);
     try {
-      setPhoto(await compressImage(file));
-      setRemovePhoto(false);
+      const result = await cutoutProduct(file);
+      setPhoto(result.blob);
     } catch {
       setError(t('photo_fail'));
+    } finally {
+      setCutting(false);
     }
+  }
+
+  // A photo coming from the scan screen is cut out once, here.
+  useEffect(() => {
+    if (draft?.photo) void onPhoto(draft.photo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function readDate(source: Blob, fromDateShot: boolean) {
+    setOcrBusy(true);
+    setOcrNote(null);
+    const result = await readDateFromPhoto(source);
+    setOcrBusy(false);
+    if (result.status === 'found') {
+      setExpiry(result.iso);
+      setOcrNote(t('ocr_found', { date: formatFull(result.iso) }));
+    } else {
+      setOcrNote(result.status === 'unsupported' ? t('ocr_web') : fromDateShot ? t('ocr_none_date') : t('ocr_none'));
+    }
+  }
+
+  const customCategories = useMemo(() => {
+    const names = new Set<string>();
+    for (const p of products) if (!CATEGORY_IDS.includes(p.category)) names.add(p.category);
+    if (!CATEGORY_IDS.includes(category)) names.add(category);
+    return [...names].sort((x, y) => x.localeCompare(y));
+  }, [products, category]);
+  const allCategories: Category[] = [...CATEGORY_IDS.filter((c) => c !== 'other'), ...customCategories, 'other'];
+  const catNeedle = normalizeText(catText);
+  const shownCategories = catNeedle ? allCategories.filter((c) => normalizeText(categoryLabel(c)).includes(catNeedle)) : allCategories;
+  const exactCategory = allCategories.some((c) => normalizeText(categoryLabel(c)) === catNeedle);
+
+  function addTypedCategory() {
+    const typed = catText.trim().slice(0, 40);
+    if (!typed) return;
+    const match = allCategories.find((c) => normalizeText(categoryLabel(c)) === normalizeText(typed));
+    setCategory(match ?? typed);
+    setCatText('');
   }
 
   async function save() {
@@ -187,7 +239,7 @@ export default function ProductForm() {
       </header>
 
       <div className="name-row">
-        <div className="photo-box">
+        <div className={`photo-box ${isCut ? 'photo-box-cut' : ''}`}>
           {preview ? (
             <>
               <img src={preview} alt={t('photo_alt')} />
@@ -197,6 +249,7 @@ export default function ProductForm() {
                 aria-label={t('photo_remove')}
                 onClick={() => {
                   setPhoto(null);
+                  setRawPhoto(null);
                   setReusePath(null);
                   setRemovePhoto(true);
                 }}
@@ -205,22 +258,12 @@ export default function ProductForm() {
               </button>
             </>
           ) : (
-            <label htmlFor="form-photo" className="photo-add">
+            <span className="photo-add">
               <Icon name="camera" size={24} />
-              {t('photo_add')}
-              <input
-                id="form-photo"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                hidden
-                onChange={(event) => {
-                  void onPhoto(event.target.files?.[0]);
-                  event.target.value = '';
-                }}
-              />
-            </label>
+              {cutting ? t('photo_cutting') : t('photo_add')}
+            </span>
           )}
+          {cutting && preview && <span className="photo-busy">{t('photo_cutting')}</span>}
         </div>
         <label className="card field field-grow" htmlFor="name">
           <span className="field-label">{t('name_label')}</span>
@@ -235,33 +278,14 @@ export default function ProductForm() {
         </label>
       </div>
 
-      {photo && (
+      {!preview && !cutting && <PhotoPick file={null} onFile={onPhoto} />}
+
+      {rawPhoto && (
         <div className="stack">
-          <button
-            type="button"
-            className="btn btn-soft"
-            disabled={ocrBusy}
-            onClick={async () => {
-              setOcrBusy(true);
-              setOcrNote(null);
-              const result = await readDateFromPhoto(photo);
-              setOcrBusy(false);
-              if (result.status === 'found') {
-                setExpiry(result.iso);
-                setOcrNote(t('ocr_found', { date: formatFull(result.iso) }));
-              } else {
-                setOcrNote(result.status === 'unsupported' ? t('ocr_web') : t('ocr_none'));
-              }
-            }}
-          >
+          <button type="button" className="btn btn-soft" disabled={ocrBusy} onClick={() => void readDate(rawPhoto, false)}>
             <Icon name="scan" size={18} />
             {ocrBusy ? t('ocr_busy') : t('ocr_btn')}
           </button>
-          {ocrNote && (
-            <span className="muted small" role="status">
-              {ocrNote}
-            </span>
-          )}
         </div>
       )}
 
@@ -285,18 +309,41 @@ export default function ProductForm() {
 
       <div className="stack">
         <span className="section-label">{t('category_label')}</span>
+        <input
+          className="cat-type"
+          type="text"
+          value={catText}
+          maxLength={40}
+          placeholder={t('cat_type_ph')}
+          aria-label={t('category_label')}
+          onChange={(event) => setCatText(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              addTypedCategory();
+            }
+          }}
+        />
         <div className="pills" role="group" aria-label={t('category_label')}>
-          {CATEGORY_IDS.map((item) => (
+          {shownCategories.map((item) => (
             <button
               key={item}
               type="button"
               aria-pressed={category === item}
               className={`pill ${category === item ? 'active' : ''}`}
-              onClick={() => setCategory(item)}
+              onClick={() => {
+                setCategory(item);
+                setCatText('');
+              }}
             >
               {categoryLabel(item)}
             </button>
           ))}
+          {catNeedle && !exactCategory && (
+            <button type="button" className="pill pill-dashed" onClick={addTypedCategory}>
+              {t('cat_add_typed', { name: catText.trim() })}
+            </button>
+          )}
         </div>
       </div>
 
@@ -317,28 +364,36 @@ export default function ProductForm() {
         </div>
       </div>
 
+      <DateEntry label={t('expiry_label')} value={expiry} onChange={setExpiry} empty />
+
       <div className="date-row">
-        <label className="card field date-field" htmlFor="expiry">
-          <span className="date-icon">
-            <Icon name="calendar" size={22} />
-          </span>
-          <span className="field-col">
-            <span className="field-label">{t('expiry_label')}</span>
-            <input
-              id="expiry"
-              type="date"
-              value={expiry}
-              min="2000-01-01"
-              max="2100-12-31"
-              onChange={(event) => setExpiry(event.target.value)}
-            />
-          </span>
+        <label className="btn btn-soft date-cam" htmlFor="date-shot">
+          <Icon name="camera" size={20} />
+          {ocrBusy ? t('ocr_busy') : t('date_shot')}
+          <input
+            id="date-shot"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            hidden
+            disabled={ocrBusy}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (file) void readDate(file, true);
+            }}
+          />
         </label>
         <div className="tile tone-peach remaining">
           <span className="small">{t('remaining')}</span>
           <strong>{remainingText(expiry)}</strong>
         </div>
       </div>
+      {ocrNote && (
+        <span className="muted small" role="status">
+          {ocrNote}
+        </span>
+      )}
 
       <div className="pills quick" role="group" aria-label={t('quick_aria')}>
         <button type="button" className="pill" onClick={() => setExpiry(addDays(today, 7))}>
@@ -458,7 +513,7 @@ export default function ProductForm() {
 
       <span className="grow" />
 
-      <button type="button" className="btn btn-primary" onClick={() => void save()} disabled={saving}>
+      <button type="button" className="btn btn-primary" onClick={() => void save()} disabled={saving || cutting}>
         <Icon name="check" size={20} stroke={2.2} />
         {saving ? t('saving') : t('save_product')}
       </button>

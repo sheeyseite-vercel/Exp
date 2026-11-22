@@ -17,6 +17,7 @@ import {
   reconcile,
 } from '../lib/money';
 import { scanBarcodeText } from '../lib/scanner';
+import { lookupBarcode } from '../lib/openfoodfacts';
 import { errText, findProductByBarcode, loadInvoice, saveInvoice, updateInvoice, useShopProducts, type ShopProduct } from '../lib/shop';
 import { todayISO } from './Shop';
 
@@ -142,6 +143,8 @@ export default function ShopInvoice() {
       if (p) pick(p);
       else {
         setKnown(null);
+        const info = await lookupBarcode(c);
+        if (info && !name.trim()) setName(info.name);
         nameRef.current?.focus();
       }
     } catch (e) {

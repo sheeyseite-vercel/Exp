@@ -10,9 +10,10 @@ async function uploadPhoto(file: Blob | null | undefined): Promise<string | null
   const { data } = await supabase.auth.getSession();
   const uid = data.session?.user.id;
   if (!uid) return null;
-  const small = await compressImage(file, 800, 0.8);
-  const path = `${uid}/c-${crypto.randomUUID()}.jpg`;
-  const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, small, { contentType: 'image/jpeg' });
+  const png = file.type === 'image/png';
+  const small = png ? file : await compressImage(file, 800, 0.8);
+  const path = `${uid}/c-${crypto.randomUUID()}.${png ? 'png' : 'jpg'}`;
+  const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, small, { contentType: png ? 'image/png' : 'image/jpeg' });
   if (error) throw error;
   return path;
 }

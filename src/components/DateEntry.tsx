@@ -4,7 +4,8 @@ import { todayISO } from '../pages/Shop';
 import { Icon } from './Icon';
 
 /** "2019-05-23" -> "23052019" */
-function toDigits(iso: string): string {
+function toDigits(iso: string, empty = false): string {
+  if (!iso && empty) return '';
   const [y, m, d] = (iso || todayISO()).split('-');
   return `${d}${m}${y}`;
 }
@@ -28,14 +29,14 @@ function toISO(digits: string): string | null {
 }
 
 /** One field that shows the whole date as 23.05.2019. Tap it and type the digits; the dots are added for you. */
-export function DateEntry({ value, onChange, label }: { value: string; onChange: (value: string) => void; label: string }) {
-  const [digits, setDigits] = useState(() => toDigits(value));
+export function DateEntry({ value, onChange, label, empty = false }: { value: string; onChange: (value: string) => void; label: string; empty?: boolean }) {
+  const [digits, setDigits] = useState(() => toDigits(value, empty));
   const fresh = useRef(false);
 
   // Follow the value when it changes from outside (for example when an invoice finishes loading).
   useEffect(() => {
-    setDigits((cur) => (toISO(cur) === value ? cur : toDigits(value)));
-  }, [value]);
+    setDigits((cur) => (toISO(cur) === value ? cur : toDigits(value, empty)));
+  }, [value, empty]);
 
   const complete = digits.length === 8;
   const bad = complete && toISO(digits) === null;
@@ -80,7 +81,7 @@ export function DateEntry({ value, onChange, label }: { value: string; onChange:
             onChange={handle}
             onBlur={() => {
               fresh.current = false;
-              if (toISO(digits) === null) setDigits(toDigits(value));
+              if (toISO(digits) === null) setDigits(toDigits(value, empty));
             }}
           />
         </span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { cutoutProduct } from '../lib/cutout';
 import { PhotoPick } from '../components/PhotoPick';
 import { PhotoTile } from '../components/PhotoTile';
 import { BackButton, ErrorBanner } from '../components/ui';
@@ -23,6 +24,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
   const [photo, setPhoto] = useState<Blob | null>(null);
+  const [cutting, setCutting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState(false);
   const [confirm, setConfirm] = useState<string | null>(null);
@@ -33,6 +35,18 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const suggestions = t('cat_suggestions')
     .split('|')
     .filter((s) => !categories.some((c) => c.name === s));
+
+  async function onProductPhoto(file: Blob | null) {
+    if (!file) return;
+    setCutting(true);
+    try {
+      setPhoto((await cutoutProduct(file)).blob);
+    } catch {
+      setPhoto(file);
+    } finally {
+      setCutting(false);
+    }
+  }
 
   function resetForm() {
     setName('');
@@ -199,8 +213,8 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
         >
           <input type="text" value={name} maxLength={120} placeholder={t('prod_name_ph')} aria-label={t('prod_name_ph')} onChange={(e) => setName(e.target.value)} />
           <input type="text" value={brand} maxLength={60} placeholder={t('prod_brand_ph')} aria-label={t('prod_brand_ph')} onChange={(e) => setBrand(e.target.value)} />
-          <PhotoPick file={photo} onFile={setPhoto} />
-          <button type="submit" className="btn btn-primary" disabled={busy || !name.trim()}>
+          <PhotoPick file={photo} onFile={onProductPhoto} />
+          <button type="submit" className="btn btn-primary" disabled={busy || cutting || !name.trim()}>
             <Icon name="plus" size={18} stroke={2.4} />
             {t('add_product')}
           </button>
