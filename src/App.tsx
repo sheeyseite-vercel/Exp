@@ -48,6 +48,7 @@ export default function App() {
       <Route path="shop/invoice/:id" element={<ShopInvoiceView />} />
       <Route path="shop/invoice/:id/edit" element={<ShopInvoice />} />
       <Route path="shop/prices" element={<ShopPrices />} />
+      <Route path="shop/prices/:cat" element={<ShopPrices />} />
       <Route path="shop/receipts" element={<ShopReceipts />} />
       <Route path="shopping" element={<Shopping />} />
       <Route path="shopping/add" element={<ShoppingPick />} />

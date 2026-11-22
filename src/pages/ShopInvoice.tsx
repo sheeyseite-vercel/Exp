@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { DatePicker } from '../components/DatePicker';
 import { BackButton, ErrorBanner } from '../components/ui';
 import { t } from '../lib/i18n';
 import {
@@ -252,10 +253,7 @@ export default function ShopInvoice() {
           <span className="field-label">{t('inv_supplier')}</span>
           <input type="text" value={supplier} maxLength={80} onChange={(e) => setSupplier(e.target.value)} />
         </label>
-        <label className="field">
-          <span className="field-label">{t('inv_date')}</span>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        </label>
+        <DatePicker label={t('inv_date')} value={date} onChange={setDate} />
         <label className="field">
           <span className="field-label">{t('inv_printed')}</span>
           <span className="money-input">

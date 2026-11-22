@@ -466,6 +466,19 @@ const ar = {
   inv_edit_title: "تعديل الوصل",
   inv_update: "حفظ التعديلات",
   cat_photo: "صورة القسم",
+  dp_today: "اليوم",
+  dp_done: "تم",
+  price_search_name: "ابحث عن منتج",
+  price_search_code: "أو اكتب الباركود",
+  price_no_match: "لا نتائج مطابقة",
+  price_cutting: "جارٍ إزالة الخلفية…",
+  price_photo: "صورة المنتج",
+  price_photo_hint: "تُزال الخلفية تلقائيًا ويبقى المنتج فقط",
+  price_nocut: "تعذّرت إزالة الخلفية فاستُعملت الصورة الأصلية",
+  price_category: "القسم",
+  price_uncat: "بدون قسم",
+  price_cat_empty: "لا منتجات في هذا القسم بعد",
+  price_set: "حدّد السعر",
 };
 
 type Dict = Record<keyof typeof ar, string>;
@@ -870,6 +883,19 @@ const fr: Dict = {
   inv_edit_title: "Modifier la facture",
   inv_update: "Enregistrer les modifications",
   cat_photo: "Photo du rayon",
+  dp_today: "Aujourd’hui",
+  dp_done: "OK",
+  price_search_name: "Rechercher un produit",
+  price_search_code: "Ou saisissez le code-barres",
+  price_no_match: "Aucun résultat",
+  price_cutting: "Détourage en cours…",
+  price_photo: "Photo du produit",
+  price_photo_hint: "Le fond est retiré automatiquement",
+  price_nocut: "Détourage impossible, photo d’origine utilisée",
+  price_category: "Rayon",
+  price_uncat: "Sans rayon",
+  price_cat_empty: "Aucun produit dans ce rayon",
+  price_set: "Fixer le prix",
 };
 
 const en: Dict = {
@@ -1272,6 +1298,19 @@ const en: Dict = {
   inv_edit_title: "Edit invoice",
   inv_update: "Save changes",
   cat_photo: "Category photo",
+  dp_today: "Today",
+  dp_done: "Done",
+  price_search_name: "Search for a product",
+  price_search_code: "Or type the barcode",
+  price_no_match: "No matches",
+  price_cutting: "Removing background…",
+  price_photo: "Product photo",
+  price_photo_hint: "The background is removed automatically",
+  price_nocut: "Couldn’t remove the background; the original photo is used",
+  price_category: "Category",
+  price_uncat: "No category",
+  price_cat_empty: "No products in this category yet",
+  price_set: "Set price",
 };
 
 const DICTS: Record<Lang, Dict> = { ar, fr, en };

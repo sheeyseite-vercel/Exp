@@ -10,6 +10,8 @@ export interface ShopProduct {
   cost_cents: number;
   sell_cents: number | null;
   stock_milli: number;
+  category_id: string | null;
+  photo_path: string | null;
 }
 
 export interface ShopInvoice {
@@ -42,7 +44,7 @@ export function errText(e: unknown): string {
   return String((e as { message?: string })?.message ?? e);
 }
 
-const PRODUCT_COLS = 'id,barcode,name,cost_cents,sell_cents,stock_milli';
+const PRODUCT_COLS = 'id,barcode,name,cost_cents,sell_cents,stock_milli,category_id,photo_path';
 
 export async function findProductByBarcode(code: string): Promise<ShopProduct | null> {
   const { data, error } = await supabase.from('shop_products').select(PRODUCT_COLS).eq('barcode', code.trim()).maybeSingle();
@@ -66,11 +68,11 @@ export function useShopProducts() {
     void reload();
   }, [reload]);
 
-  const setSellPrice = useCallback(
-    async (id: string, sell: number | null) => {
+  const saveProduct = useCallback(
+    async (id: string, patch: { sell_cents?: number | null; category_id?: string | null; photo_path?: string | null }) => {
       const { error: failure } = await supabase
         .from('shop_products')
-        .update({ sell_cents: sell, updated_at: new Date().toISOString() })
+        .update({ ...patch, updated_at: new Date().toISOString() })
         .eq('id', id);
       if (failure) throw failure;
       await reload();
@@ -101,7 +103,23 @@ export function useShopProducts() {
     [reload],
   );
 
-  return { products, loaded, error, reload, setSellPrice, createProduct, deleteProduct };
+  return { products, loaded, error, reload, saveProduct, createProduct, deleteProduct };
+}
+
+/** Uploads a (cut-out) product photo and returns its storage path. */
+export async function uploadProductPhoto(photo: Blob): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  const uid = data.session?.user.id;
+  if (!uid) throw new Error('not signed in');
+  const ext = photo.type === 'image/png' ? 'png' : 'jpg';
+  const path = `${uid}/p-${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, photo, { contentType: photo.type || 'image/jpeg' });
+  if (error) throw error;
+  return path;
+}
+
+export async function removeStoredPhoto(path: string | null): Promise<void> {
+  if (path) await supabase.storage.from(PHOTO_BUCKET).remove([path]);
 }
 
 export function useInvoices() {

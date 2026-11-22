@@ -11,7 +11,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
+
 import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.segmentation.subject.SubjectSegmentation;
+import com.google.mlkit.vision.segmentation.subject.SubjectSegmenter;
+import com.google.mlkit.vision.segmentation.subject.SubjectSegmenterOptions;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
@@ -71,6 +76,51 @@ public class ExpiryNotifierPlugin extends Plugin {
                         call.resolve(out);
                     })
                     .addOnFailureListener(e -> call.reject(e.getMessage()));
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
+    /** Cuts the main subject out of a photo (transparent background), fully on the device. */
+    @PluginMethod
+    public void removeBackground(PluginCall call) {
+        String image = call.getString("image");
+        if (image == null) {
+            call.reject("image required");
+            return;
+        }
+        try {
+            byte[] bytes = Base64.decode(image, Base64.DEFAULT);
+            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (bmp == null) {
+                call.reject("bad image");
+                return;
+            }
+            SubjectSegmenterOptions options = new SubjectSegmenterOptions.Builder().enableForegroundBitmap().build();
+            SubjectSegmenter segmenter = SubjectSegmentation.getClient(options);
+            segmenter.process(InputImage.fromBitmap(bmp, 0))
+                    .addOnSuccessListener(result -> {
+                        try {
+                            Bitmap fg = result.getForegroundBitmap();
+                            if (fg == null) {
+                                call.reject("no subject");
+                                return;
+                            }
+                            ByteArrayOutputStream out = new ByteArrayOutputStream();
+                            fg.compress(Bitmap.CompressFormat.PNG, 100, out);
+                            JSObject o = new JSObject();
+                            o.put("image", Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP));
+                            call.resolve(o);
+                        } catch (Exception e) {
+                            call.reject(e.getMessage());
+                        } finally {
+                            segmenter.close();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        segmenter.close();
+                        call.reject(e.getMessage());
+                    });
         } catch (Exception e) {
             call.reject(e.getMessage());
         }

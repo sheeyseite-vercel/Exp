@@ -110,7 +110,7 @@ export default function Profile() {
     <div className="page page-narrow">
       <ErrorBanner message={error} />
 
-      <section className="card pf-head">
+      <section className={`card pf-head ${editing ? 'pf-head-edit' : ''}`}>
         <span className="avatar avatar-lg">{name.slice(0, 1).toUpperCase()}</span>
         {editing ? (
           <form

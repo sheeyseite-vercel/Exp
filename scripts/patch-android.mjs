@@ -30,7 +30,7 @@ if (!xml.includes('auth-callback')) {
 }
 
 // Google code scanner module is downloaded on demand; ask Play services to fetch it at install time.
-const meta = `        <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode_ui" />\n`;
+const meta = `        <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="barcode_ui,subject_segment" />\n`;
 if (!xml.includes('com.google.mlkit.vision.DEPENDENCIES')) xml = xml.replace('</application>', `${meta}    </application>`);
 
 // Keep the single task so the deep link returns to the running app.
@@ -79,6 +79,10 @@ const gradleFile = 'android/app/build.gradle';
 let gradle = readFileSync(gradleFile, 'utf8');
 if (!gradle.includes('mlkit:text-recognition')) {
   gradle = gradle.replace(/dependencies\s*\{/, "dependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'");
+  writeFileSync(gradleFile, gradle);
+}
+if (!gradle.includes('subject-segmentation')) {
+  gradle = gradle.replace(/dependencies\s*\{/, "dependencies {\n    implementation 'com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1'");
   writeFileSync(gradleFile, gradle);
 }
 console.log('Gradle patched');

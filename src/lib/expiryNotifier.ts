@@ -22,6 +22,8 @@ export interface ExpiryNotifierPlugin {
   takeActions(): Promise<{ actions: { productId: string; action: 'used' | 'discarded' }[] }>;
   /** On-device text recognition (ML Kit) for a JPEG given as base64. */
   recognizeText(options: { image: string }): Promise<{ text: string }>;
+  /** On-device subject cut-out (ML Kit): a PNG with a transparent background, as base64. */
+  removeBackground(options: { image: string }): Promise<{ image: string }>;
 }
 
 /** Native Android plugin that draws the branded reminder card. */

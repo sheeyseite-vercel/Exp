@@ -48,13 +48,12 @@ export default function Shop() {
     <div className="page page-narrow">
       <header className="page-head">
         <h1>{t('shopmgr_title')}</h1>
-        <p className="muted">{t('shop_sub')}</p>
       </header>
       <ErrorBanner message={error ?? invError} />
 
       <div className="shop-stats">
         <span className="chip chip-mint">{t('shop_stat_products', { n: products.length })}</span>
-        {noPrice > 0 && <span className="chip chip-peach">{t('shop_stat_noprice', { n: noPrice })}</span>}
+        {noPrice > 0 && <span className="chip chip-sun">{t('shop_stat_noprice', { n: noPrice })}</span>}
       </div>
 
       <div className="stack-sm">
