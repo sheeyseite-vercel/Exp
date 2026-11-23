@@ -1,31 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { DeleteSheet } from '../components/DeleteSheet';
 import { Icon } from '../components/Icon';
+import { LongPress } from '../components/LongPress';
 import { PhotoPick } from '../components/PhotoPick';
 import { PhotoTile } from '../components/PhotoTile';
 import { BackButton, ErrorBanner } from '../components/ui';
 import { catName } from '../lib/categories';
 import { useCatalog } from '../lib/catalog';
 import { cutoutProduct } from '../lib/cutout';
+import { purgeProduct } from '../lib/purge';
 import { t } from '../lib/i18n';
-import { centsToInput, formatMoneyCur, formatPercentTenths, formatQty, margin, parseMoney } from '../lib/money';
+import { centsToInput, formatMoneyCur, formatPercentTenths, margin, parseMoney } from '../lib/money';
 import { scanBarcodeText } from '../lib/scanner';
 import {
+  addAlias,
   errText,
   findProductByBarcode,
+  listAliases,
+  removeAlias,
+  type BarcodeAlias,
   removeStoredPhoto,
   uploadProductPhoto,
   useShopProducts,
   type ShopProduct,
 } from '../lib/shop';
-import { usePhotoUrl } from '../state/usePhotoUrl';
+import { prefetchPhotos, usePhotoUrl } from '../state/usePhotoUrl';
 
 const TONES = ['sky', 'mint', 'sun', 'rose'];
 
-function ProductPhoto({ path, name, index = 0 }: { path: string | null; name: string; index?: number }) {
+function ProductPhoto({ path, name, index = 0, cut = false }: { path: string | null; name: string; index?: number; cut?: boolean }) {
   const url = usePhotoUrl(path);
   return (
-    <span className={`pp-photo pp-tone-${TONES[index % TONES.length]}`}>
+    <span className={`pp-photo pp-tone-${TONES[index % TONES.length]} ${cut ? 'pp-cut' : ''}`}>
       {url ? <img src={url} alt="" /> : <span className="pp-letter">{name.trim().charAt(0)}</span>}
     </span>
   );
@@ -54,8 +61,9 @@ function Suggestion({ p, q, onPick }: { p: ShopProduct; q: string; onPick: () =>
 /** Selling prices: categories → products, search by name (suggestions as you type) or barcode. */
 export default function ShopPrices() {
   const { cat } = useParams();
-  const navigate = useNavigate();
-  const { products, loaded, error, saveProduct, createProduct, deleteProduct } = useShopProducts();
+  const [params] = useSearchParams();
+  const showCats = params.get('c') === '1';
+  const { products, loaded, error, reload, saveProduct, createProduct } = useShopProducts();
   const { categories } = useCatalog();
   const [query, setQuery] = useState('');
   const [code, setCode] = useState('');
@@ -73,6 +81,11 @@ export default function ShopPrices() {
   const [newName, setNewName] = useState('');
   const [newCost, setNewCost] = useState('');
   const [armed, setArmed] = useState(false);
+  const [full, setFull] = useState(false);
+  const [nameEdit, setNameEdit] = useState('');
+  const [aliases, setAliases] = useState<BarcodeAlias[]>([]);
+  const [newCode, setNewCode] = useState('');
+  const [hold, setHold] = useState<ShopProduct | null>(null);
   const savedUrl = usePhotoUrl(selected?.photo_path ?? null);
 
   useEffect(() => {
@@ -94,8 +107,15 @@ export default function ShopPrices() {
     return [...starts, ...rest].slice(0, 8);
   }, [products, q]);
 
-  function open(p: ShopProduct) {
+  useEffect(() => prefetchPhotos(products.map((p) => p.photo_path)), [products]);
+
+  function open(p: ShopProduct, withAll = true) {
     setSelected(p);
+    setFull(withAll);
+    setNameEdit(p.name);
+    setNewCode('');
+    setAliases([]);
+    if (withAll) void listAliases(p.id).then(setAliases).catch(() => undefined);
     setSell(p.sell_cents === null ? '' : centsToInput(p.sell_cents));
     setCatId(p.category_id);
     setPhoto(null);
@@ -168,10 +188,13 @@ export default function ShopPrices() {
     if (!selected || sellInvalid || cutting) return;
     setBusy(true);
     try {
-      const patch: { sell_cents: number | null; category_id: string | null; photo_path?: string } = {
+      const patch: { name?: string; sell_cents: number | null; category_id?: string | null; photo_path?: string } = {
         sell_cents: sellCents,
-        category_id: catId,
       };
+      if (full) {
+        patch.category_id = catId;
+        if (nameEdit.trim() && nameEdit.trim() !== selected.name) patch.name = nameEdit.trim();
+      }
       let oldPhoto: string | null = null;
       if (photo) {
         patch.photo_path = await uploadProductPhoto(photo);
@@ -203,17 +226,16 @@ export default function ShopPrices() {
     }
   }
 
-  async function remove() {
+  async function removeForever() {
     if (!selected) return;
     if (!armed) {
       setArmed(true);
       return;
     }
     try {
-      const old = selected.photo_path;
-      await deleteProduct(selected.id);
-      await removeStoredPhoto(old);
+      await purgeProduct(selected.name, selected.barcode);
       close();
+      await reload();
     } catch (e) {
       setFailure(errText(e));
     }
@@ -324,33 +346,35 @@ export default function ShopPrices() {
           </button>
         </div>
 
-        <div className="pp-edit-photo">
-          <span className="pp-photo pp-tone-sky pp-big">
-            {cutting ? (
-              <span className="pp-busy">{t('price_cutting')}</span>
-            ) : photoUrl || savedUrl ? (
-              <img src={photoUrl ?? savedUrl ?? ''} alt="" />
-            ) : (
-              <span className="pp-letter">{selected.name.trim().charAt(0)}</span>
-            )}
-          </span>
-          <div className="pp-edit-side">
-            <strong>{t('price_photo')}</strong>
-            <PhotoPick file={photo} onFile={onPhoto} />
-            <span className="muted small">{noCut ? t('price_nocut') : t('price_photo_hint')}</span>
-          </div>
-        </div>
+        {full && (
+          <>
+            <label className="field ps-field">
+              <span className="field-label">{t('inv_name')}</span>
+              <input type="text" value={nameEdit} maxLength={120} onChange={(e) => setNameEdit(e.target.value)} />
+            </label>
+            <div className="pp-edit-photo">
+              <span className="pp-photo pp-tone-sky pp-big">
+                {cutting ? (
+                  <span className="pp-busy">{t('price_cutting')}</span>
+                ) : photoUrl || savedUrl ? (
+                  <img src={photoUrl ?? savedUrl ?? ''} alt="" />
+                ) : (
+                  <span className="pp-letter">{selected.name.trim().charAt(0)}</span>
+                )}
+              </span>
+              <div className="pp-edit-side">
+                <strong>{t('price_photo')}</strong>
+                <PhotoPick file={photo} onFile={onPhoto} />
+                <span className="muted small">{noCut ? t('price_nocut') : t('price_photo_hint')}</span>
+              </div>
+            </div>
+          </>
+        )}
 
-        <div className="ps-stats">
-          <span className="ps-stat ps-blue">
-            <small>{t('price_cost')}</small>
-            <strong>{formatMoneyCur(selected.cost_cents)}</strong>
-          </span>
-          <span className="ps-stat ps-green">
-            <small>{t('price_stock_label')}</small>
-            <strong>{formatQty(selected.stock_milli)}</strong>
-          </span>
-        </div>
+        <span className="ps-cost">
+          <small>{t('price_cost')}</small>
+          <strong>{formatMoneyCur(selected.cost_cents)}</strong>
+        </span>
 
         <label className="field ps-field">
           <span className="field-label">{t('price_sell')}</span>
@@ -383,6 +407,7 @@ export default function ShopPrices() {
           </span>
         )}
 
+        {full && (
         <div className="stack-xs">
           <span className="field-label">{t('price_category')}</span>
           <div className="pills" role="group">
@@ -402,17 +427,86 @@ export default function ShopPrices() {
             ))}
           </div>
         </div>
+        )}
+
+        {full && (
+          <div className="stack-xs">
+            <span className="field-label">{t('bc_title')}</span>
+            <div className="bc-list">
+              <span className="bc-chip bc-main">{selected.barcode ?? '—'}</span>
+              {aliases.map((a) => (
+                <span key={a.id} className="bc-chip">
+                  {a.barcode}
+                  <button
+                    type="button"
+                    aria-label={t('delete')}
+                    onClick={async () => {
+                      try {
+                        await removeAlias(a.id);
+                        setAliases(aliases.filter((x) => x.id !== a.id));
+                      } catch (e) {
+                        setFailure(errText(e));
+                      }
+                    }}
+                  >
+                    <Icon name="close" size={14} stroke={2.4} />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="bc-add">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder={t('bc_add_ph')}
+                aria-label={t('bc_add_ph')}
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn btn-soft btn-sm"
+                onClick={async () => {
+                  try {
+                    const text = newCode.trim() || (await scanBarcodeText()) || '';
+                    if (!text) return;
+                    await addAlias(selected.id, text);
+                    setAliases(await listAliases(selected.id));
+                    setNewCode('');
+                  } catch (e) {
+                    setFailure(e instanceof Error && e.message === 'barcode already used' ? t('bc_taken') : errText(e));
+                  }
+                }}
+              >
+                <Icon name={newCode.trim() ? 'plus' : 'scan'} size={16} stroke={2.2} />
+                {newCode.trim() ? t('add') : t('price_scan')}
+              </button>
+            </div>
+          </div>
+        )}
 
         <button type="button" className="btn btn-primary" disabled={sellInvalid || busy || cutting} onClick={() => void save()}>
           <Icon name="check" size={18} stroke={2.4} />
           {t('price_save')}
         </button>
-        <button type="button" className={`btn ${armed ? 'btn-danger' : 'btn-danger-soft'}`} onClick={() => void remove()}>
+        <button type="button" className={`btn ${armed ? 'btn-danger' : 'btn-danger-soft'}`} onClick={() => void removeForever()}>
           <Icon name="trash" size={20} />
-          {armed ? t('confirm_word') : t('price_delete')}
+          {armed ? t('confirm_word') : t('delete_forever')}
         </button>
       </div>
     </div>
+  );
+
+  const holdSheet = hold && (
+    <DeleteSheet
+      title={hold.name}
+      hint={t('delete_forever_hint')}
+      onClose={() => setHold(null)}
+      onConfirm={async () => {
+        await purgeProduct(hold.name, hold.barcode);
+        await reload();
+      }}
+    />
   );
 
   // ---- level 2: products of a category ---------------------------------------------------------
@@ -420,7 +514,7 @@ export default function ShopPrices() {
     return (
       <div className="page page-narrow">
         <header className="form-head">
-          <BackButton to="/shop/prices" />
+          <BackButton to="/shop/prices?c=1" />
           <h1>{cat === 'none' ? t('price_uncat') : (category ? catName(category.name) : t('shop_price_t'))}</h1>
         </header>
         <ErrorBanner message={error ?? failure} />
@@ -432,43 +526,68 @@ export default function ShopPrices() {
         {loaded && list.length === 0 && <div className="card empty muted">{t('price_cat_empty')}</div>}
         <div className="pp-grid">
           {list.map((p, i) => (
-            <button key={p.id} type="button" className="pp-card" onClick={() => open(p)}>
-              <ProductPhoto path={p.photo_path} name={p.name} index={i} />
-              <strong className="pp-name">{p.name}</strong>
-              {p.sell_cents === null ? (
-                <span className="pp-set">{t('price_set')}</span>
-              ) : (
-                <span className="pp-price">{formatMoneyCur(p.sell_cents)}</span>
-              )}
-            </button>
+            <LongPress key={p.id} onLong={() => setHold(p)}>
+              <button type="button" className="pp-card" onClick={() => open(p, false)}>
+                <ProductPhoto path={p.photo_path} name={p.name} index={i} cut={p.photo_path?.endsWith('.png') === true} />
+                <strong className="pp-name">{p.name}</strong>
+                {p.sell_cents === null ? (
+                  <span className="pp-set">{t('price_set')}</span>
+                ) : (
+                  <span className="pp-price">{formatMoneyCur(p.sell_cents)}</span>
+                )}
+              </button>
+            </LongPress>
           ))}
         </div>
+        {holdSheet}
         {editor}
       </div>
     );
   }
 
-  // ---- level 1: search + categories ------------------------------------------------------------
+  // ---- level 1: search, barcode and one door into the categories ----------------------------
+  if (!showCats) {
+    return (
+      <div className="page page-narrow">
+        <header className="form-head">
+          <BackButton to="/shop" />
+          <h1>{t('shop_price_t')}</h1>
+        </header>
+        <ErrorBanner message={error ?? failure} />
+        {note && (
+          <div className="banner banner-mint" role="status">
+            {note}
+          </div>
+        )}
+        {search}
+        {loaded && products.length === 0 && <div className="card empty muted">{t('price_empty')}</div>}
+        <Link to="/shop/prices?c=1" className="sh-tile sh-green">
+          <span className="sh-icon">
+            <Icon name="layers" size={24} />
+          </span>
+          <span className="sh-text">
+            <strong>{t('catalog_title')}</strong>
+          </span>
+          <Icon name="chevronLeft" size={20} />
+        </Link>
+        {editor}
+      </div>
+    );
+  }
+
+  // ---- level 1b: the categories ---------------------------------------------------------------
   return (
     <div className="page page-narrow">
       <header className="form-head">
-        <BackButton to="/shop" />
-        <h1>{t('shop_price_t')}</h1>
+        <BackButton to="/shop/prices" />
+        <h1>{t('catalog_title')}</h1>
       </header>
       <ErrorBanner message={error ?? failure} />
-      {note && (
-        <div className="banner banner-mint" role="status">
-          {note}
-        </div>
-      )}
-      {search}
-
-      {loaded && products.length === 0 && <div className="card empty muted">{t('price_empty')}</div>}
 
       <div className="pick-grid">
         {categories.map((c, i) => (
           <Link key={c.id} to={`/shop/prices/${c.id}`} className="cat-card">
-            <PhotoTile path={c.photo_path} label={c.name} index={i} className="cat-cover" />
+            <PhotoTile path={c.photo_path} label={catName(c.name)} index={i} className="cat-cover" />
             <span className="cat-shade" />
             <span className="cat-info">
               <strong>{catName(c.name)}</strong>
@@ -487,11 +606,6 @@ export default function ShopPrices() {
           </Link>
         )}
       </div>
-
-      <button type="button" className="btn btn-soft" onClick={() => navigate('/catalog')}>
-        <Icon name="layers" size={18} />
-        {t('catalog_title')}
-      </button>
       {editor}
     </div>
   );

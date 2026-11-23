@@ -4516,3 +4516,81 @@ html[dir='ltr'] .rtl-flip {
 .pf-consumed strong {
   font-size: 22px;
 }
+
+/* ---- prices editor, barcodes, unknown barcode ---- */
+.ps-cost {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid #d5e0fb;
+  border-radius: 16px;
+  background: #f1f5fe;
+  color: #1f4fc4;
+}
+.ps-cost small {
+  font-size: 12px;
+  font-weight: 600;
+}
+.ps-cost strong {
+  font-size: 15px;
+}
+.bc-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  direction: ltr;
+}
+.bc-chip button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.bc-main {
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+.bc-add {
+  display: flex;
+  gap: 8px;
+}
+.bc-add input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  font: 600 15px var(--font);
+}
+.inv-unknown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #ecd57a;
+  border-radius: 16px;
+  background: #fff6cc;
+  color: #4d3a00;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pp-cut img {
+  filter: drop-shadow(0 8px 8px rgba(23, 35, 63, 0.22));
+}

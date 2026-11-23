@@ -46,10 +46,45 @@ export function errText(e: unknown): string {
 
 const PRODUCT_COLS = 'id,barcode,name,cost_cents,sell_cents,stock_milli,category_id,photo_path';
 
+/** Finds a product by its main barcode or by any other barcode added to it. */
 export async function findProductByBarcode(code: string): Promise<ShopProduct | null> {
-  const { data, error } = await supabase.from('shop_products').select(PRODUCT_COLS).eq('barcode', code.trim()).maybeSingle();
+  const c = code.trim();
+  const { data, error } = await supabase.from('shop_products').select(PRODUCT_COLS).eq('barcode', c).maybeSingle();
   if (error) throw error;
-  return (data as ShopProduct | null) ?? null;
+  if (data) return data as ShopProduct;
+  const alias = await supabase.from('shop_product_barcodes').select('product_id').eq('barcode', c).maybeSingle();
+  if (alias.error) throw alias.error;
+  if (!alias.data) return null;
+  const owner = await supabase.from('shop_products').select(PRODUCT_COLS).eq('id', (alias.data as { product_id: string }).product_id).maybeSingle();
+  if (owner.error) throw owner.error;
+  return (owner.data as ShopProduct | null) ?? null;
+}
+
+export interface BarcodeAlias {
+  id: string;
+  barcode: string;
+}
+
+export async function listAliases(productId: string): Promise<BarcodeAlias[]> {
+  const { data, error } = await supabase.from('shop_product_barcodes').select('id,barcode').eq('product_id', productId).order('created_at');
+  if (error) throw error;
+  return data as BarcodeAlias[];
+}
+
+/** Gives a product one more barcode (the same product sometimes changes its code). */
+export async function addAlias(productId: string, code: string): Promise<void> {
+  const c = code.trim();
+  if (!c) return;
+  const owner = await findProductByBarcode(c);
+  if (owner && owner.id !== productId) throw new Error('barcode already used');
+  if (owner) return;
+  const { error } = await supabase.from('shop_product_barcodes').insert({ product_id: productId, barcode: c });
+  if (error) throw error;
+}
+
+export async function removeAlias(id: string): Promise<void> {
+  const { error } = await supabase.from('shop_product_barcodes').delete().eq('id', id);
+  if (error) throw error;
 }
 
 export function useShopProducts() {
@@ -69,7 +104,7 @@ export function useShopProducts() {
   }, [reload]);
 
   const saveProduct = useCallback(
-    async (id: string, patch: { sell_cents?: number | null; category_id?: string | null; photo_path?: string | null }) => {
+    async (id: string, patch: { name?: string; sell_cents?: number | null; category_id?: string | null; photo_path?: string | null }) => {
       const { error: failure } = await supabase
         .from('shop_products')
         .update({ ...patch, updated_at: new Date().toISOString() })

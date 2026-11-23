@@ -39,6 +39,8 @@ function SettingRow({ icon, title, hint, children }: { icon: IconName; title: st
 export default function Profile() {
   const {
     user,
+    products,
+    history,
     consumedCount,
     settings,
     lastSync,

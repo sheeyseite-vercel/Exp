@@ -18,7 +18,7 @@ import {
 } from '../lib/money';
 import { scanBarcodeText } from '../lib/scanner';
 import { lookupBarcode } from '../lib/openfoodfacts';
-import { errText, findProductByBarcode, loadInvoice, saveInvoice, updateInvoice, useShopProducts, type ShopProduct } from '../lib/shop';
+import { addAlias, errText, findProductByBarcode, loadInvoice, saveInvoice, updateInvoice, useShopProducts, type ShopProduct } from '../lib/shop';
 import { todayISO } from './Shop';
 
 interface Line {
@@ -75,6 +75,9 @@ export default function ShopInvoice() {
   const [qty, setQty] = useState('1');
   const [price, setPrice] = useState('');
   const [known, setKnown] = useState<ShopProduct | null>(null);
+  const [unknownCode, setUnknownCode] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
+  const [linkQuery, setLinkQuery] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -143,6 +146,7 @@ export default function ShopInvoice() {
       if (p) pick(p);
       else {
         setKnown(null);
+        setUnknownCode(c);
         const info = await lookupBarcode(c);
         if (info && !name.trim()) setName(info.name);
         nameRef.current?.focus();
@@ -292,6 +296,7 @@ export default function ShopInvoice() {
             onChange={(e) => {
               setBarcode(e.target.value);
               setKnown(null);
+              setUnknownCode(null);
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -318,6 +323,15 @@ export default function ShopInvoice() {
           }}
           onKeyDown={next(qtyRef)}
         />
+        {unknownCode && !known && (
+          <div className="inv-unknown">
+            <span>{t('bc_unknown', { code: unknownCode })}</span>
+            <button type="button" className="btn btn-soft btn-sm" onClick={() => setLinking(true)}>
+              <Icon name="plus" size={16} stroke={2.4} />
+              {t('bc_link')}
+            </button>
+          </div>
+        )}
         {known && <span className="chip chip-mint inv-known">{t('inv_found', { p: formatMoneyCur(known.cost_cents) })}</span>}
         {suggestions.length > 0 && (
           <div className="inv-suggest">
@@ -365,6 +379,56 @@ export default function ShopInvoice() {
         </button>
         <span className="muted small">{t('inv_hint')}</span>
       </form>
+
+      {linking && unknownCode && (
+        <div className="sheet-backdrop" onClick={() => setLinking(false)}>
+          <div className="sheet sheet-tall" role="dialog" aria-label={t('bc_link')} onClick={(event) => event.stopPropagation()}>
+            <div className="sheet-head">
+              <span className="stack-xs">
+                <strong>{t('bc_link')}</strong>
+                <span className="muted small ltr">{unknownCode}</span>
+              </span>
+              <button type="button" className="shop-del" aria-label={t('cancel')} onClick={() => setLinking(false)}>
+                <Icon name="close" size={18} stroke={2.2} />
+              </button>
+            </div>
+            <input
+              className="cat-type"
+              type="search"
+              value={linkQuery}
+              placeholder={t('price_search_name')}
+              aria-label={t('price_search_name')}
+              onChange={(e) => setLinkQuery(e.target.value)}
+            />
+            <div className="cp-list">
+              {products
+                .filter((p) => !linkQuery.trim() || p.name.toLowerCase().includes(linkQuery.trim().toLowerCase()))
+                .slice(0, 30)
+                .map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="cp-row"
+                    onClick={async () => {
+                      try {
+                        await addAlias(p.id, unknownCode);
+                        setLinking(false);
+                        setUnknownCode(null);
+                        setLinkQuery('');
+                        pick(p);
+                      } catch (e) {
+                        setError(errText(e));
+                      }
+                    }}
+                  >
+                    <strong>{p.name}</strong>
+                    <small>{formatMoneyCur(p.cost_cents)}</small>
+                  </button>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="stack-sm">
         <h2 className="section-title">{t('inv_lines')}</h2>
