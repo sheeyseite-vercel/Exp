@@ -86,3 +86,10 @@ if (!gradle.includes('subject-segmentation')) {
   writeFileSync(gradleFile, gradle);
 }
 console.log('Gradle patched');
+
+// Rising versionCode so every new APK counts as an update of the previous one.
+let g = readFileSync(gradleFile, 'utf8');
+const build = process.env.GITHUB_RUN_NUMBER || '1';
+g = g.replace(/versionCode\s+\d+/, `versionCode ${build}`).replace(/versionName\s+"[^"]*"/, `versionName "1.0.${build}"`);
+writeFileSync(gradleFile, g);
+console.log('Version set to', build);
