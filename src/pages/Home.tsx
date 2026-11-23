@@ -14,12 +14,12 @@ const FEATURES: { icon: IconName; tone: string; title: TKey; text: TKey }[] = [
 
 function Tile({ to, icon, label, tone }: { to: string; icon: IconName; label: string; tone: string }) {
   return (
-    <Link to={to} className={`hm-row hm-${tone}`}>
+    <Link to={to} className={`hm-card hm-${tone}`}>
+      <span className="hm-orb-s" />
       <span className="hm-ic">
         <Icon name={icon} size={22} />
       </span>
       <strong>{label}</strong>
-      <Icon name="chevronLeft" size={18} />
     </Link>
   );
 }
