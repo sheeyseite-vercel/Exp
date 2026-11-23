@@ -56,7 +56,7 @@ export default function ShopReceipts() {
   const [open, setOpen] = useState<ShopReceipt | null>(null);
 
   async function save() {
-    if (!title.trim() || !photo) {
+    if (!photo) {
       setFailure(t('rec_need'));
       return;
     }
@@ -86,12 +86,12 @@ export default function ShopReceipts() {
           type="text"
           value={title}
           maxLength={80}
-          placeholder={t('rec_title_ph')}
-          aria-label={t('rec_title_ph')}
+          placeholder={t('rec_title_opt')}
+          aria-label={t('rec_title_opt')}
           onChange={(e) => setTitle(e.target.value)}
         />
         <PhotoPick file={photo} onFile={setPhoto} />
-        <button type="button" className="btn btn-primary" disabled={busy || !title.trim() || !photo} onClick={() => void save()}>
+        <button type="button" className="btn btn-primary" disabled={busy || !photo} onClick={() => void save()}>
           <Icon name="check" size={18} stroke={2.4} />
           {t('rec_save')}
         </button>

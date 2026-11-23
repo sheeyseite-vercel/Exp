@@ -264,11 +264,18 @@ export function useReceipts() {
       const { data } = await supabase.auth.getSession();
       const uid = data.session?.user.id;
       if (!uid) throw new Error('not signed in');
-      const small = await compressImage(photo, 1800, 0.85);
-      const path = `${uid}/r-${crypto.randomUUID()}.jpg`;
-      const up = await supabase.storage.from(PHOTO_BUCKET).upload(path, small, { contentType: 'image/jpeg' });
+      let small: Blob = photo;
+      try {
+        small = await compressImage(photo, 1800, 0.85);
+      } catch {
+        /* the phone's own format could not be re-encoded: keep the original file */
+      }
+      const isJpeg = small.type === 'image/jpeg';
+      const ext = isJpeg ? 'jpg' : /png/.test(small.type) ? 'png' : /webp/.test(small.type) ? 'webp' : 'jpg';
+      const path = `${uid}/r-${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from(PHOTO_BUCKET).upload(path, small, { contentType: small.type || 'image/jpeg' });
       if (up.error) throw up.error;
-      const { error: failure } = await supabase.from('shop_receipts').insert({ title: title.trim(), photo_path: path });
+      const { error: failure } = await supabase.from('shop_receipts').insert({ title: title.trim() || new Date().toLocaleDateString(), photo_path: path });
       if (failure) {
         await supabase.storage.from(PHOTO_BUCKET).remove([path]);
         throw failure;

@@ -125,6 +125,7 @@ const ar = {
   bc_link: 'إضافته لمنتج موجود',
   calc_title: 'آلة حاسبة',
   calc_use: 'استعمال {v}',
+  rec_title_opt: 'عنوان (اختياري)',
   cat_other: 'أخرى',
 
   notif_today: '{name}: تنتهي صلاحيته اليوم.',
@@ -569,6 +570,7 @@ const fr: Dict = {
   bc_link: 'L’ajouter à un produit existant',
   calc_title: 'Calculatrice',
   calc_use: 'Utiliser {v}',
+  rec_title_opt: 'Titre (facultatif)',
   cat_other: 'Autres',
 
   notif_today: '{name} : expire aujourd’hui.',
@@ -1011,6 +1013,7 @@ const en: Dict = {
   bc_link: 'Add it to an existing product',
   calc_title: 'Calculator',
   calc_use: 'Use {v}',
+  rec_title_opt: 'Title (optional)',
   cat_other: 'Other',
 
   notif_today: '{name}: expires today.',

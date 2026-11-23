@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { ExpiryNotifier } from './expiryNotifier';
 import { compressImage } from './image';
 
-const SIZE = 900;
+const SIZE = 1000;
 const PAD = 0.07;
 
 function toBase64(blob: Blob): Promise<string> {
@@ -74,7 +74,7 @@ export interface CutoutResult {
 
 /** Turns a product photo into a clean cut-out on transparent background, same framing for every product. */
 export async function cutoutProduct(photo: Blob): Promise<CutoutResult> {
-  const small = await compressImage(photo, 1024, 0.9);
+  const small = await compressImage(photo, 1400, 0.92);
   if (Capacitor.isNativePlatform()) {
     try {
       const { image } = await ExpiryNotifier.removeBackground({ image: await toBase64(small) });
