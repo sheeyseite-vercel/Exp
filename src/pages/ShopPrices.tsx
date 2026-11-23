@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { PhotoPick } from '../components/PhotoPick';
 import { PhotoTile } from '../components/PhotoTile';
 import { BackButton, ErrorBanner } from '../components/ui';
+import { catName } from '../lib/categories';
 import { useCatalog } from '../lib/catalog';
 import { cutoutProduct } from '../lib/cutout';
 import { t } from '../lib/i18n';
@@ -396,7 +397,7 @@ export default function ShopPrices() {
                 aria-pressed={catId === c.id}
                 onClick={() => setCatId(c.id)}
               >
-                {c.name}
+                {catName(c.name)}
               </button>
             ))}
           </div>
@@ -420,7 +421,7 @@ export default function ShopPrices() {
       <div className="page page-narrow">
         <header className="form-head">
           <BackButton to="/shop/prices" />
-          <h1>{cat === 'none' ? t('price_uncat') : (category?.name ?? t('shop_price_t'))}</h1>
+          <h1>{cat === 'none' ? t('price_uncat') : (category ? catName(category.name) : t('shop_price_t'))}</h1>
         </header>
         <ErrorBanner message={error ?? failure} />
         {note && (
@@ -470,7 +471,7 @@ export default function ShopPrices() {
             <PhotoTile path={c.photo_path} label={c.name} index={i} className="cat-cover" />
             <span className="cat-shade" />
             <span className="cat-info">
-              <strong>{c.name}</strong>
+              <strong>{catName(c.name)}</strong>
               <span className="cat-count">{t('prod_count', { n: inCategory(c.id).length })}</span>
             </span>
           </Link>

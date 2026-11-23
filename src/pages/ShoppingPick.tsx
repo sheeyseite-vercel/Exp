@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { catName } from '../lib/categories';
+import { purgeProduct } from '../lib/purge';
+import { prefetchPhotos } from '../state/usePhotoUrl';
 import { cutoutProduct } from '../lib/cutout';
+import { DeleteSheet } from '../components/DeleteSheet';
+import { LongPress } from '../components/LongPress';
 import { PhotoPick } from '../components/PhotoPick';
 import { PhotoTile } from '../components/PhotoTile';
 import { BackButton, ErrorBanner } from '../components/ui';
@@ -28,13 +33,17 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState(false);
   const [confirm, setConfirm] = useState<string | null>(null);
+  const [holdCat, setHoldCat] = useState<{ id: string; name: string } | null>(null);
+  const [holdProd, setHoldProd] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => prefetchPhotos([...categories.map((c) => c.photo_path), ...products.map((p) => p.photo_path)]), [categories, products]);
 
   const base = manage ? '/catalog' : '/shopping/add';
   const category = categories.find((c) => c.id === cat);
   const editing = edit;
   const suggestions = t('cat_suggestions')
     .split('|')
-    .filter((s) => !categories.some((c) => c.name === s));
+    .filter((s) => !categories.some((c) => catName(c.name) === s));
 
   async function onProductPhoto(file: Blob | null) {
     if (!file) return;
@@ -79,7 +88,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
     return (
       <div className="page page-narrow">
         <header className="form-head">
-          <BackButton to={manage ? '/profile' : '/shopping'} />
+          <BackButton to={manage ? '/' : '/shopping'} />
           <h1>{manage ? t('catalog_title') : t('pick_category')}</h1>
           {toggle}
         </header>
@@ -130,12 +139,13 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
 
         <div className="pick-grid">
           {categories.map((c, i) => (
-            <div key={c.id} className="pick-wrap">
+            <LongPress key={c.id} onLong={() => manage && setHoldCat({ id: c.id, name: c.name })}>
+            <div className="pick-wrap">
               <Link to={`${base}/${c.id}`} className="cat-card">
                 <PhotoTile path={c.photo_path} label={c.name} index={i} className="cat-cover" />
                 <span className="cat-shade" />
                 <span className="cat-info">
-                  <strong>{c.name}</strong>
+                  <strong>{catName(c.name)}</strong>
                   <span className="cat-count">{t('prod_count', { n: products.filter((p) => p.category_id === c.id).length })}</span>
                 </span>
               </Link>
@@ -158,8 +168,18 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
                 </button>
               )}
             </div>
+            </LongPress>
           ))}
         </div>
+        {holdCat && (
+          <DeleteSheet
+            title={catName(holdCat.name)}
+            onClose={() => setHoldCat(null)}
+            onConfirm={async () => {
+              await deleteCategory(holdCat.id);
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -170,7 +190,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
     <div className="page page-narrow">
       <header className="form-head">
         <BackButton to={base} />
-        <h1>{category?.name ?? t('pick_category')}</h1>
+        <h1>{category ? catName(category.name) : t('pick_category')}</h1>
         {toggle}
       </header>
       <ErrorBanner message={error ?? failure} />
@@ -232,7 +252,8 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
 
       <div className="pick-grid">
         {list.map((p, i) => (
-          <div key={p.id} className="pick-wrap">
+          <LongPress key={p.id} onLong={() => manage && setHoldProd({ id: p.id, name: p.name })}>
+          <div className="pick-wrap">
             <button type="button" className="pick-card" onClick={() => (editing ? undefined : setSelected(p))}>
               <PhotoTile path={p.photo_path} label={p.name} index={i} className="pick-photo" />
               <strong>{p.name}</strong>
@@ -257,8 +278,21 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
               </button>
             )}
           </div>
+          </LongPress>
         ))}
       </div>
+
+      {holdProd && (
+        <DeleteSheet
+          title={holdProd.name}
+          hint={t('delete_forever_hint')}
+          onClose={() => setHoldProd(null)}
+          onConfirm={async () => {
+            await purgeProduct(holdProd.name);
+            await deleteProduct(holdProd.id);
+          }}
+        />
+      )}
 
       {editing ? (
         <button

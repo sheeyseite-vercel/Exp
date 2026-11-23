@@ -40,3 +40,14 @@ describe('findExpiryDate on messy label text', () => {
     expect(findExpiryDate('PROD 01/01/2026\nEXP 01/01/2027')).toBe('2027-01-01');
   });
 });
+
+describe('findExpiryDate keyword on its own line, production-only', () => {
+  it('uses the date on the line after the label', () => {
+    expect(findExpiryDate('تاريخ انتهاء الصلاحية\n04/2029')).toBe('2029-04-30');
+    expect(findExpiryDate('EXP\n30.04.2029')).toBe('2029-04-30');
+    expect(findExpiryDate('Date limite: 12 2028')).toBe('2028-12-31');
+  });
+  it('never returns a production date alone', () => {
+    expect(findExpiryDate('F:28/10/26 08:49')).toBeNull();
+  });
+});

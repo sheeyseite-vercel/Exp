@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { DeleteSheet } from '../components/DeleteSheet';
 import { BackButton, Empty, Thumb, toneOf } from '../components/ui';
 import { categoryLabel } from '../lib/categories';
 import {
@@ -16,13 +17,14 @@ import {
 } from '../lib/dates';
 import { t } from '../lib/i18n';
 import { parseTime } from '../lib/planner';
+import { purgeProduct } from '../lib/purge';
 import { supabase } from '../lib/supabase';
 import { useData } from '../state/DataProvider';
 
 export default function Details() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products, settings, loaded, consumeProduct, removeProduct } = useData();
+  const { products, settings, loaded, consumeProduct, refresh } = useData();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,22 +108,16 @@ export default function Details() {
       </header>
 
       {confirming && (
-        <div className="card confirm" role="alertdialog" aria-label={t('confirm_aria')}>
-          <span className="row-name">{t('confirm_delete')}</span>
-          <span className="confirm-actions">
-            <button
-              type="button"
-              className="btn btn-danger btn-sm"
-              disabled={busy}
-              onClick={() => void run(() => removeProduct(product.id))}
-            >
-              {t('delete')}
-            </button>
-            <button type="button" className="btn btn-soft btn-sm" onClick={() => setConfirming(false)}>
-              {t('cancel')}
-            </button>
-          </span>
-        </div>
+        <DeleteSheet
+          title={product.name}
+          hint={t('delete_forever_hint')}
+          onClose={() => setConfirming(false)}
+          onConfirm={async () => {
+            await purgeProduct(product.name, product.barcode);
+            await refresh();
+            navigate('/products', { replace: true });
+          }}
+        />
       )}
 
       <section className={`hero card accent-${tone}`}>
@@ -193,32 +189,33 @@ export default function Details() {
         </div>
       )}
 
-      <div className="actions">
+      <div className="actions actions-compact">
         <button
           type="button"
           className="btn btn-primary"
           disabled={busy}
           onClick={() => void run(() => consumeProduct(product.id, 'used'))}
         >
-          <Icon name="check" size={20} stroke={2.2} />
+          <Icon name="check" size={18} stroke={2.2} />
           {t('act_used')}
         </button>
         <button
           type="button"
-          className="btn btn-soft"
+          className="btn btn-sun"
           disabled={busy}
           onClick={() => void run(() => consumeProduct(product.id, 'discarded'))}
         >
-          <Icon name="trash" size={20} />
+          <Icon name="trash" size={18} />
           {t('act_discard')}
         </button>
       </div>
-      <div className="actions">
+      <div className="actions actions-compact">
         <button type="button" className="btn btn-outline" disabled={busy} onClick={() => void addToShopping(product.name)}>
-          <Icon name="cart" size={20} />
-          {t('shop_add_from')}
+          <Icon name="cart" size={18} />
+          {t('add_short')}
         </button>
         <Link to={`/product/${product.id}/edit`} className="btn btn-outline">
+          <Icon name="pencil" size={18} />
           {t('edit')}
         </Link>
       </div>

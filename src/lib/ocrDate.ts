@@ -31,7 +31,7 @@ function fullYear(raw: string): number {
 }
 
 // Words printed next to the expiry date (E:, EXP, BBE, DLC, ينتهي …) and next to the production date (F:, MFG, PROD, FAB …).
-const EXPIRY = /(?:^|[^a-z])(?:exp|exd|ed|e|bbe|bb|bbd|dlc|dluo|ddm|dluo|use\s*by|best\s*before|consommer|a\s*consommer|à\s*consommer|jusqu|avant)(?![a-z])|ينتهي|الانتهاء|الصلاحية|صالح/i;
+const EXPIRY = /(?:^|[^a-z])(?:exp|exd|ed|e|bbe|bb|bbd|dlc|dluo|ddm|dluo|use\s*by|best\s*before|consommer|a\s*consommer|à\s*consommer|jusqu|avant)(?![a-z])|limite|ينتهي|انتهاء|الانتهاء|الصلاحية|صلاحية|صالح|يستهلك/i;
 const PRODUCTION = /(?:^|[^a-z])(?:mfg|mfd|prod|pd|p|f|fab|fabr|fabriqu[ée]?|pack|packed|cond|lot)(?![a-z])|الإنتاج|الانتاج|التصنيع/i;
 
 /** Fixes the usual OCR mix-ups (O for 0, l for 1) around digits and separators. */
@@ -54,8 +54,11 @@ export function findExpiryDate(text: string): string | null {
   const lines = clean(text).split(/\r?\n/);
   const found: Hit[] = [];
 
+  let carry = false;
   for (const line of lines) {
-    const keyed = EXPIRY.test(line);
+    const here = EXPIRY.test(line);
+    const keyed = here || carry;
+    const before = found.length;
     const production = !keyed && PRODUCTION.test(line);
     const add = (date: string | null) => date && found.push({ date, keyed, production });
 
@@ -75,6 +78,7 @@ export function findExpiryDate(text: string): string | null {
         const month = +m[1];
         if (month >= 1 && month <= 12) add(iso(2000 + +m[2], month, daysIn(2000 + +m[2], month)));
       }
+      for (const m of line.matchAll(/(?<![\d./\-])(\d{1,2})\s+(20\d{2})(?!\d)/g)) add(iso(+m[2], +m[1], daysIn(+m[2], +m[1])));
       // compact: 300429 (ddmmyy), 20290430 (yyyymmdd), 042029 (mmyyyy)
       for (const m of line.matchAll(/(?<!\d)(\d{2})(\d{2})(\d{2})(?!\d)/g)) add(iso(2000 + +m[3], +m[2], +m[1]));
       for (const m of line.matchAll(/(?<!\d)(20\d{2})(\d{2})(\d{2})(?!\d)/g)) add(iso(+m[1], +m[2], +m[3]));
@@ -87,11 +91,15 @@ export function findExpiryDate(text: string): string | null {
       const year = fullYear(m[3]);
       add(iso(year, month, m[1] ? +m[1] : daysIn(year, month)));
     }
+    // "EXP" or "تاريخ انتهاء الصلاحية" alone on a line: the date is on the next line.
+    carry = here && found.length === before;
   }
 
   if (found.length === 0) return null;
   const keyed = found.filter((f) => f.keyed);
   const notProduction = found.filter((f) => !f.production);
-  const pool = keyed.length ? keyed : notProduction.length ? notProduction : found;
+  // Only production dates were read: better to say nothing than to fill in the wrong one.
+  if (!keyed.length && !notProduction.length) return null;
+  const pool = keyed.length ? keyed : notProduction;
   return pool.map((f) => f.date).sort().at(-1) ?? null;
 }

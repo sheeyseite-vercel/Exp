@@ -4157,3 +4157,362 @@ html[dir='ltr'] .rtl-flip {
 .date-row .remaining {
   margin: 0;
 }
+
+/* ======================= batch: category picker, products, home, trash, details ======================= */
+.cp-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--primary);
+  font: inherit;
+  text-align: start;
+}
+.cp-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.cp-text small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.cp-text strong {
+  color: var(--ink);
+  font-size: 16px;
+}
+.cp-compact {
+  width: 52px;
+  min-height: 52px;
+  flex: none;
+  justify-content: center;
+  padding: 0;
+  border-radius: 18px;
+}
+.cp-dot {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f0635f;
+}
+.cp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+.cp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+}
+.cp-row strong {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+}
+.cp-row.on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+.cp-new {
+  color: var(--primary-ink);
+}
+.cp-photo,
+.cp-ic {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border-radius: 14px;
+}
+.cp-ic {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.cp-photo .ptile-letter {
+  font-size: 18px;
+}
+.search-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.search-row .search {
+  flex: 1;
+  min-width: 0;
+}
+
+/* product cards: no coloured edge, a soft tinted photo and a status pill */
+.pr {
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 20px -16px rgba(23, 35, 63, 0.4);
+}
+.pr .thumb {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 18px;
+}
+.pr .row-name {
+  font-size: 15px;
+}
+.pr .row-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pr-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.pr-mint .pr-dot {
+  background: #27be98;
+}
+.pr-peach .pr-dot {
+  background: #e9a23b;
+}
+.pr-rose .pr-dot {
+  background: #e5566d;
+}
+.pr-group {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 20px -16px rgba(23, 35, 63, 0.4);
+}
+
+/* details: smaller type, lighter hero */
+.hero {
+  gap: 12px;
+  padding: 16px;
+}
+.hero-name strong {
+  font-size: 18px;
+}
+.hero-count {
+  padding: 12px 16px;
+  border-radius: 18px;
+}
+.hero-num {
+  font-size: 46px;
+  line-height: 1;
+}
+.hero-label {
+  font-size: 14px;
+  padding-bottom: 4px;
+}
+.info strong {
+  font-size: 16px;
+}
+.timeline h2 {
+  font-size: 16px;
+}
+.actions-compact {
+  display: flex;
+  gap: 10px;
+}
+.actions-compact .btn {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 14px;
+  font-size: 15px;
+  gap: 8px;
+  justify-content: center;
+}
+.btn-sun {
+  border: 0;
+  background: #fff1b8;
+  color: #4d3a00;
+  font-weight: 700;
+}
+
+/* home */
+.hm-add {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #3b6ff0, #5b8bff);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 16px 28px -18px rgba(59, 111, 240, 0.9);
+}
+.hm-add-ic {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+}
+.hm-add-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.hm-add-text strong {
+  font-size: 17px;
+}
+.hm-add-text small {
+  opacity: 0.85;
+  font-size: 12px;
+}
+.hm-alerts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.hm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.hm-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 8px;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  text-align: center;
+  text-decoration: none;
+}
+.hm-tile strong {
+  font-size: 14px;
+}
+.hm-ic {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.hm-blue {
+  border-color: #cfdcfb;
+  background: #eaf0fe;
+  color: #1f4fc4;
+}
+.hm-green {
+  border-color: #bfe8da;
+  background: #e5f7f0;
+  color: #0f7a5d;
+}
+.hm-sun {
+  border-color: #ecd57a;
+  background: #fff6cc;
+  color: #6a5000;
+}
+.hm-feats {
+  display: flex;
+  gap: 10px;
+  margin-inline: -16px;
+  padding: 2px 16px 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.hm-feat {
+  display: flex;
+  flex: none;
+  width: 196px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  scroll-snap-align: start;
+}
+.hm-feat strong {
+  font-size: 14px;
+}
+.hm-feat > span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.hm-feat-ic {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* trash */
+.tr-log {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px;
+}
+.tr-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.tr-log > :first-child .tr-row {
+  border-top: 0;
+}
+.tr-photo {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+.tr-qty {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff1b8;
+  color: #4d3a00;
+  font-weight: 700;
+}
+.pp-tile {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+}
+.pf-consumed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.pf-consumed .muted {
+  flex: 1;
+}
+.pf-consumed strong {
+  font-size: 22px;
+}

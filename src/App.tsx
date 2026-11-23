@@ -17,6 +17,7 @@ import ShopReceipts from './pages/ShopReceipts';
 import ShoppingPick from './pages/ShoppingPick';
 import Shopping from './pages/Shopping';
 import { t } from './lib/i18n';
+import Trash from './pages/Trash';
 import { useData } from './state/DataProvider';
 
 function Splash() {
@@ -50,6 +51,8 @@ export default function App() {
       <Route path="shop/prices" element={<ShopPrices />} />
       <Route path="shop/prices/:cat" element={<ShopPrices />} />
       <Route path="shop/receipts" element={<ShopReceipts />} />
+      <Route path="trash" element={<Trash />} />
+      <Route path="trash/:cat" element={<Trash />} />
       <Route path="shopping" element={<Shopping />} />
       <Route path="shopping/add" element={<ShoppingPick />} />
       <Route path="shopping/add/:cat" element={<ShoppingPick />} />

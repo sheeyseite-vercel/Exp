@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { CategoryPicker } from '../components/CategoryPicker';
 import { DateEntry } from '../components/DateEntry';
 import { Icon } from '../components/Icon';
 import { PhotoPick } from '../components/PhotoPick';
 import { BackButton } from '../components/ui';
-import { CATEGORY_IDS, categoryLabel } from '../lib/categories';
 import { cutoutProduct } from '../lib/cutout';
 import { readDateFromPhoto } from '../lib/ocr';
 import { addDays, daysPhrase, daysUntil, formatFull, isValidISO, toISO } from '../lib/dates';
@@ -48,7 +48,6 @@ export default function ProductForm() {
   const [reusePath, setReusePath] = useState<string | null>(draft?.photoPath ?? null);
   const [rawPhoto, setRawPhoto] = useState<Blob | null>(draft?.photo ?? null);
   const [cutting, setCutting] = useState(false);
-  const [catText, setCatText] = useState('');
   const [remind, setRemind] = useState<number[] | null>(null);
   const [barcode, setBarcode] = useState<string | null>(draft?.barcode ?? null);
   const [photo, setPhoto] = useState<Blob | null>(null);
@@ -174,25 +173,6 @@ export default function ProductForm() {
     }
   }
 
-  const customCategories = useMemo(() => {
-    const names = new Set<string>();
-    for (const p of products) if (!CATEGORY_IDS.includes(p.category)) names.add(p.category);
-    if (!CATEGORY_IDS.includes(category)) names.add(category);
-    return [...names].sort((x, y) => x.localeCompare(y));
-  }, [products, category]);
-  const allCategories: Category[] = [...CATEGORY_IDS.filter((c) => c !== 'other'), ...customCategories, 'other'];
-  const catNeedle = normalizeText(catText);
-  const shownCategories = catNeedle ? allCategories.filter((c) => normalizeText(categoryLabel(c)).includes(catNeedle)) : allCategories;
-  const exactCategory = allCategories.some((c) => normalizeText(categoryLabel(c)) === catNeedle);
-
-  function addTypedCategory() {
-    const typed = catText.trim().slice(0, 40);
-    if (!typed) return;
-    const match = allCategories.find((c) => normalizeText(categoryLabel(c)) === normalizeText(typed));
-    setCategory(match ?? typed);
-    setCatText('');
-  }
-
   async function save() {
     setError(null);
     if (!name.trim()) {
@@ -308,43 +288,7 @@ export default function ProductForm() {
       )}
 
       <div className="stack">
-        <span className="section-label">{t('category_label')}</span>
-        <input
-          className="cat-type"
-          type="text"
-          value={catText}
-          maxLength={40}
-          placeholder={t('cat_type_ph')}
-          aria-label={t('category_label')}
-          onChange={(event) => setCatText(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              addTypedCategory();
-            }
-          }}
-        />
-        <div className="pills" role="group" aria-label={t('category_label')}>
-          {shownCategories.map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={category === item}
-              className={`pill ${category === item ? 'active' : ''}`}
-              onClick={() => {
-                setCategory(item);
-                setCatText('');
-              }}
-            >
-              {categoryLabel(item)}
-            </button>
-          ))}
-          {catNeedle && !exactCategory && (
-            <button type="button" className="pill pill-dashed" onClick={addTypedCategory}>
-              {t('cat_add_typed', { name: catText.trim() })}
-            </button>
-          )}
-        </div>
+        <CategoryPicker value={category} onChange={(name) => setCategory(name ?? 'other')} />
       </div>
 
       <div className="stack">

@@ -33,11 +33,12 @@ export function ProductRow({ product, compact = false }: { product: Product; com
   const days = daysUntil(product.expiry_date);
   const tone = toneOf(statusOf(days));
   return (
-    <Link to={`/product/${product.id}`} className={compact ? 'row row-compact' : `row card accent accent-${tone}`}>
+    <Link to={`/product/${product.id}`} className={compact ? 'row row-compact' : `row card pr pr-${tone}`}>
       <Thumb product={product} size={compact ? 42 : 52} />
       <span className="row-main">
         <span className="row-name">{product.name}</span>
         <span className="row-sub">
+          {compact ? null : <i className="pr-dot" />}
           {expiryLine(product.expiry_date, days)}
           {compact ? '' : ` · ${t('row_qty', { n: product.quantity })}`}
         </span>

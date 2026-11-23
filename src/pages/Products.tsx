@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { CategoryPicker } from '../components/CategoryPicker';
 import { Icon } from '../components/Icon';
 import { Empty, ErrorBanner, ProductRow, StatusChip, Thumb, toneOf } from '../components/ui';
 import { daysUntil, expiryLine, statusOf } from '../lib/dates';
 import { t, type TKey } from '../lib/i18n';
 import { normalizeText, productKey } from '../lib/text';
-import { LOCATIONS, type Location, type Product } from '../lib/types';
+import { catName, categoryLabel } from '../lib/categories';
+import type { Product } from '../lib/types';
 import { useData } from '../state/DataProvider';
 
 type Filter = 'all' | 'soon' | 'expired' | 'fresh';
@@ -21,7 +23,7 @@ function BatchGroup({ rows }: { rows: Row[] }) {
   const total = rows.reduce((sum, row) => sum + row.product.quantity, 0);
   const first = rows[0];
   return (
-    <div className={`card group accent accent-${toneOf(statusOf(first.days))}`}>
+    <div className={`card group pr-group pr-${toneOf(statusOf(first.days))}`}>
       <div className="row">
         <Thumb product={first.product} size={52} />
         <span className="row-main">
@@ -47,7 +49,7 @@ export default function Products() {
   const { products, loaded, error } = useData();
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState('');
-  const [place, setPlace] = useState<Location | 'all'>('all');
+  const [cat, setCat] = useState<string | null>(null);
 
   const requested = params.get('f') as Filter | null;
   const filter: Filter = requested && FILTERS.includes(requested) ? requested : 'all';
@@ -69,7 +71,7 @@ export default function Products() {
     if (filter === 'soon' && !(days >= 0 && days <= 7)) return false;
     if (filter === 'expired' && days >= 0) return false;
     if (filter === 'fresh' && days <= 7) return false;
-    if (place !== 'all' && (product.location ?? 'other') !== place) return false;
+    if (cat && normalizeText(categoryLabel(product.category)) !== normalizeText(catName(cat))) return false;
     return needle === '' || normalizeText(product.name).includes(needle);
   });
 
@@ -82,22 +84,25 @@ export default function Products() {
     }
     return [...map.values()];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, filter, query, place]);
+  }, [products, filter, query, cat]);
 
   return (
     <div className="page page-narrow">
       <ErrorBanner message={error} />
 
-      <label className="search" htmlFor="product-search">
-        <Icon name="search" size={20} />
-        <input
-          id="product-search"
-          type="search"
-          placeholder={t('products_search')}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </label>
+      <div className="search-row">
+        <label className="search" htmlFor="product-search">
+          <Icon name="search" size={20} />
+          <input
+            id="product-search"
+            type="search"
+            placeholder={t('products_search')}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+        <CategoryPicker filter compact value={cat} onChange={setCat} extra={[...new Set(products.map((p) => p.category))]} />
+      </div>
 
       <div className="filters" role="group" aria-label={t('filters_aria')}>
         {FILTERS.map((item) => (
@@ -112,22 +117,6 @@ export default function Products() {
           </button>
         ))}
       </div>
-
-      {rows.length > 0 && (
-        <div className="filters" role="group" aria-label={t('loc_label')}>
-          {(['all', ...LOCATIONS] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={place === item}
-              className={`fchip ${place === item ? 'active' : ''}`}
-              onClick={() => setPlace(item)}
-            >
-              {item === 'all' ? t('loc_all') : t(`loc_${item}` as TKey)}
-            </button>
-          ))}
-        </div>
-      )}
 
       <div className="list">
         {groups.map((group) =>
