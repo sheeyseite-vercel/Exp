@@ -136,7 +136,7 @@ export interface CutoutResult {
 
 /** Turns a product photo into a clean cut-out on transparent background, same framing for every product. */
 export async function cutoutProduct(photo: Blob): Promise<CutoutResult> {
-  const small = await compressImage(photo, 1400, 0.92);
+  const small = await compressImage(photo, 1100, 0.9);
   if (Capacitor.isNativePlatform()) {
     const b64 = await toBase64(small);
     for (let attempt = 0; attempt < 3; attempt += 1) {

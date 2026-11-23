@@ -14,11 +14,12 @@ const FEATURES: { icon: IconName; tone: string; title: TKey; text: TKey }[] = [
 
 function Tile({ to, icon, label, tone }: { to: string; icon: IconName; label: string; tone: string }) {
   return (
-    <Link to={to} className={`hm-tile hm-${tone}`}>
+    <Link to={to} className={`hm-row hm-${tone}`}>
       <span className="hm-ic">
-        <Icon name={icon} size={24} />
+        <Icon name={icon} size={22} />
       </span>
       <strong>{label}</strong>
+      <Icon name="chevronLeft" size={18} />
     </Link>
   );
 }
@@ -31,40 +32,36 @@ export default function Home() {
 
   return (
     <div className="page page-home">
-      <span className="muted small">{formatToday(new Date())}</span>
-
-      <header className="home-greet">
+      <header className="hm-top">
+        <span className="hm-date">{formatToday(new Date())}</span>
         <h1>{t('home_title')}</h1>
-        <p>{t('home_text')}</p>
       </header>
 
-      <Link to="/scan" className="hm-add">
-        <span className="hm-add-ic">
-          <Icon name="plus" size={26} stroke={2.4} />
-        </span>
-        <span className="hm-add-text">
-          <strong>{t('home_cta')}</strong>
-          <small>{t('home_cta_hint')}</small>
-        </span>
-        <Icon name="chevronLeft" size={20} />
-      </Link>
-
-      {(soon > 0 || expired > 0) && (
-        <div className="hm-alerts">
-          {soon > 0 && (
-            <Link to="/products?f=soon" className="chip chip-peach">
-              {t('filter_soon')} {soon}
-            </Link>
-          )}
-          {expired > 0 && (
-            <Link to="/products?f=expired" className="chip chip-rose">
-              {t('filter_expired')} {expired}
-            </Link>
-          )}
+      <section className="hm-hero">
+        <span className="hm-orb hm-orb-a" />
+        <span className="hm-orb hm-orb-b" />
+        <p>{t('home_text')}</p>
+        <div className="hm-stats">
+          <Link to="/products" className="hm-stat">
+            <strong>{products.length}</strong>
+            <span>{t('nav_products')}</span>
+          </Link>
+          <Link to="/products?f=soon" className="hm-stat hm-stat-soon">
+            <strong>{soon}</strong>
+            <span>{t('filter_soon')}</span>
+          </Link>
+          <Link to="/products?f=expired" className="hm-stat hm-stat-exp">
+            <strong>{expired}</strong>
+            <span>{t('filter_expired')}</span>
+          </Link>
         </div>
-      )}
+        <Link to="/scan" className="hm-cta">
+          <Icon name="plus" size={20} stroke={2.6} />
+          <span>{t('home_cta')}</span>
+        </Link>
+      </section>
 
-      <div className="hm-grid">
+      <div className="hm-list">
         <Tile to="/shopping" icon="cart" label={t('shop_title')} tone="blue" />
         <Tile to="/catalog" icon="layers" label={t('cat_section')} tone="green" />
         <Tile to="/trash" icon="trash" label={t('trash_title')} tone="sun" />

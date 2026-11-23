@@ -22,6 +22,8 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 @CapacitorPlugin(name = "ExpiryNotifier")
 public class ExpiryNotifierPlugin extends Plugin {
+    private static final java.util.concurrent.Executor WORKER = java.util.concurrent.Executors.newSingleThreadExecutor();
+
     @PluginMethod
     public void schedule(PluginCall call) {
         JSArray items = call.getArray("items");
@@ -102,7 +104,7 @@ public class ExpiryNotifierPlugin extends Plugin {
                     .build();
             SubjectSegmenter segmenter = SubjectSegmentation.getClient(options);
             segmenter.process(InputImage.fromBitmap(bmp, 0))
-                    .addOnSuccessListener(result -> {
+                    .addOnSuccessListener(WORKER, result -> {
                         try {
                             Bitmap fg = result.getForegroundBitmap();
                             // Prefer the one subject that is big and near the centre (the product), so a hand or the table is dropped.
@@ -138,8 +140,8 @@ public class ExpiryNotifierPlugin extends Plugin {
                             JSObject o = new JSObject();
                             o.put("image", Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP));
                             call.resolve(o);
-                        } catch (Exception e) {
-                            call.reject(e.getMessage());
+                        } catch (Throwable e) {
+                            call.reject(String.valueOf(e.getMessage()));
                         } finally {
                             segmenter.close();
                         }
@@ -148,8 +150,8 @@ public class ExpiryNotifierPlugin extends Plugin {
                         segmenter.close();
                         call.reject(e.getMessage());
                     });
-        } catch (Exception e) {
-            call.reject(e.getMessage());
+        } catch (Throwable e) {
+            call.reject(String.valueOf(e.getMessage()));
         }
     }
 }

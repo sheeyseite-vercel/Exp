@@ -239,8 +239,8 @@ export default function ProductForm() {
             </>
           ) : (
             <span className="photo-add">
-              {cutting ? <span className="cut-spin" aria-hidden="true" /> : <Icon name="camera" size={24} />}
-              {cutting ? t('photo_cutting') : t('photo_add')}
+              {cutting && <span className="cut-spin" aria-hidden="true" />}
+              {cutting ? t('photo_cutting') : t('photo_word')}
             </span>
           )}
           {cutting && preview && (

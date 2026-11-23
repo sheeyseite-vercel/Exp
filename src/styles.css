@@ -5080,3 +5080,141 @@ html[dir='ltr'] .rtl-flip {
   font-size: 22px;
   font-weight: 800;
 }
+
+/* home v2 */
+.hm-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hm-date {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.hm-top h1 {
+  margin: 0;
+  font-size: 22px;
+}
+.hm-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: linear-gradient(140deg, #3b6cf6 0%, #5b8cff 55%, #7aa7ff 100%);
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(47, 91, 224, 0.32);
+}
+.hm-hero p {
+  position: relative;
+  max-width: 28ch;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+.hm-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.hm-orb-a {
+  top: -50px;
+  inset-inline-end: -40px;
+  width: 160px;
+  height: 160px;
+}
+.hm-orb-b {
+  bottom: -60px;
+  inset-inline-start: -30px;
+  width: 120px;
+  height: 120px;
+}
+.hm-stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.hm-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  text-decoration: none;
+}
+.hm-stat strong {
+  font-size: 20px;
+}
+.hm-stat span {
+  font-size: 11px;
+  opacity: 0.9;
+}
+.hm-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 999px;
+  background: #fff;
+  color: #2f5be0;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.hm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hm-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgba(40, 70, 160, 0.07);
+  color: var(--ink);
+  text-decoration: none;
+}
+.hm-row strong {
+  flex: 1;
+  font-size: 14px;
+}
+.hm-row > svg {
+  color: var(--muted);
+}
+.hm-row .hm-ic {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border-radius: 13px;
+}
+.hm-row.hm-blue .hm-ic {
+  background: #e3ebff;
+  color: #2f5be0;
+}
+.hm-row.hm-green .hm-ic {
+  background: #dcf5ea;
+  color: #148a5b;
+}
+.hm-row.hm-sun .hm-ic {
+  background: #ffe1d6;
+  color: #d9502f;
+}
+.hm-row.hm-sun {
+  background: #fff3ee;
+}
