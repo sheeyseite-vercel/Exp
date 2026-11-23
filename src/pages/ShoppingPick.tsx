@@ -22,7 +22,6 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const navigate = useNavigate();
   const { categories, products, loaded, error, addCategory, setCategoryPhoto, deleteCategory, addProduct, deleteProduct } = useCatalog();
   const { products: shopProducts } = useShopProducts();
-  const [search, setSearch] = useState('');
   const [edit, setEdit] = useState(manage);
   const [selected, setSelected] = useState<CatProduct | null>(null);
   const [unit, setUnit] = useState<Unit>('box');
@@ -99,17 +98,36 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
 
         {manage && (
           <div className="stack-xs">
-            <input
-              type="search"
-              value={search}
-              placeholder={t('cat_search_ph')}
-              aria-label={t('cat_search_ph')}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search.trim() &&
+            <form
+              className="uni-box"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                const n = name.trim();
+                if (!n || busy || categories.some((c) => c.name.toLowerCase() === n.toLowerCase())) return;
+                setBusy(true);
+                await addCategory(n);
+                setBusy(false);
+                resetForm();
+              }}
+            >
+              <Icon name="search" size={20} />
+              <input
+                type="text"
+                value={name}
+                maxLength={60}
+                placeholder={t('cat_search_ph')}
+                aria-label={t('cat_search_ph')}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button type="submit" className="uni-add" disabled={busy || !name.trim()} aria-label={t('cat_add')}>
+                <Icon name="plus" size={18} stroke={2.6} />
+                {t('cat_add')}
+              </button>
+            </form>
+            {name.trim() &&
               shopProducts
                 .filter((p) => {
-                  const q = search.trim().toLowerCase();
+                  const q = name.trim().toLowerCase();
                   return p.name.toLowerCase().includes(q) || (p.barcode ?? '').includes(q);
                 })
                 .slice(0, 8)
@@ -127,23 +145,6 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
 
         {editing && (
           <>
-            <form
-              className="cat-form cat-form-col"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                if (!name.trim()) return;
-                setBusy(true);
-                await addCategory(name);
-                setBusy(false);
-                resetForm();
-              }}
-            >
-              <input type="text" value={name} maxLength={60} placeholder={t('cat_name_ph')} aria-label={t('cat_name_ph')} onChange={(e) => setName(e.target.value)} />
-              <button type="submit" className="btn btn-primary" disabled={busy || !name.trim()}>
-                <Icon name="plus" size={18} stroke={2.4} />
-                {t('cat_add')}
-              </button>
-            </form>
             {suggestions.length > 0 && (
               <div className="stack-xs">
                 <span className="muted small">{t('cat_suggest')}</span>
@@ -169,7 +170,7 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
         )}
 
         <div className="pick-grid">
-          {categories.map((c, i) => (
+          {categories.filter((c) => !manage || !name.trim() || catName(c.name).toLowerCase().includes(name.trim().toLowerCase())).map((c, i) => (
             <LongPress key={c.id} onLong={() => manage && setHoldCat({ id: c.id, name: c.name })}>
             <div className="pick-wrap">
               <Link to={`${base}/${c.id}`} className="cat-card">

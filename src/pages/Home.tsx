@@ -71,14 +71,17 @@ export default function Home() {
       </div>
 
       <span className="section-label">{t('home_features')}</span>
-      <div className="hm-feats">
-        {FEATURES.map((f) => (
-          <article key={f.title} className={`hm-feat tone-${f.tone}`}>
-            <span className="hm-feat-ic">
+      <div className="hm-feats card">
+        {FEATURES.map((f, i) => (
+          <article key={f.title} className="hm-feat">
+            <span className={`hm-feat-ic tone-${f.tone}`}>
               <Icon name={f.icon} size={20} />
             </span>
-            <strong>{t(f.title)}</strong>
-            <span>{t(f.text)}</span>
+            <span className="hm-feat-t">
+              <strong>{t(f.title)}</strong>
+              <span>{t(f.text)}</span>
+            </span>
+            <span className="hm-feat-n">{i + 1}</span>
           </article>
         ))}
       </div>

@@ -311,7 +311,8 @@ export default function ShopPrices() {
           }}
         />
         <button type="button" className="bc-scan" aria-label={t('price_scan')} onClick={() => void scan()}>
-          {t('price_scan')}
+          <Icon name="camera" size={18} />
+          <span>{t('price_scan')}</span>
         </button>
       </div>
 

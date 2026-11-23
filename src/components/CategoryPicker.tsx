@@ -122,7 +122,7 @@ export function CategoryPicker({ value, onChange, filter = false, extra = [], co
                   <strong>{t('cat_add_typed', { name: text.trim() })}</strong>
                 </button>
               )}
-              {!filter && !needle && (
+              {!filter && !needle && !rows.some((r) => same(r.name, 'other')) && (
                 <button type="button" className={`cp-row ${value === 'other' ? 'on' : ''}`} onClick={() => pick('other')}>
                   <span className="cp-ic">
                     <Icon name="cube" size={20} />

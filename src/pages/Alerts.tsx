@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Icon } from '../components/Icon';
+import { Icon, type IconName } from '../components/Icon';
 import { LogoGlyph } from '../components/LogoGlyph';
 import { TimeEntry } from '../components/TimeEntry';
 import { ErrorBanner, Switch } from '../components/ui';
@@ -9,10 +9,10 @@ import { exactAlarmState, openExactAlarmSettings, type ExactAlarmState } from '.
 import { notificationBody, reminderCard } from '../lib/planner';
 import { useData } from '../state/DataProvider';
 
-const PRESETS: { days: number; title: TKey; text: TKey }[] = [
-  { days: 7, title: 'opt_7', text: 'opt_7_d' },
-  { days: 1, title: 'opt_1', text: 'opt_1_d' },
-  { days: 0, title: 'opt_0', text: 'opt_0_d' },
+const PRESETS: { days: number; title: TKey; text: TKey; icon: IconName }[] = [
+  { days: 7, title: 'opt_7', text: 'opt_7_d', icon: 'calendar' },
+  { days: 1, title: 'opt_1', text: 'opt_1_d', icon: 'calendarCheck' },
+  { days: 0, title: 'opt_0', text: 'opt_0_d', icon: 'bolt' },
 ];
 const PRESET_DAYS = PRESETS.map((p) => p.days);
 
@@ -99,7 +99,7 @@ export default function Alerts() {
         <span className="muted small">{t('when_hint')}</span>
       </div>
 
-      <div className={`pills day-pills ${enabled ? '' : 'is-off'}`} role="group" aria-label={t('when_title')}>
+      <div className={`al-opts ${enabled ? '' : 'is-off'}`} role="group" aria-label={t('when_title')}>
         {PRESETS.map((preset) => {
           const on = rules.includes(preset.days);
           return (
@@ -108,11 +108,17 @@ export default function Alerts() {
               type="button"
               aria-pressed={on}
               disabled={!enabled}
-              className={`pill pill-check ${on ? 'on' : ''}`}
+              className={`al-opt ${on ? 'on' : ''}`}
               onClick={() => toggle(preset.days)}
             >
-              {on && <Icon name="check" size={15} stroke={2.8} />}
-              {t(preset.title)}
+              <span className="al-ic">
+                <Icon name={preset.icon} size={20} />
+              </span>
+              <span className="al-t">
+                <strong>{t(preset.title)}</strong>
+                <small>{t(preset.text)}</small>
+              </span>
+              <span className="al-check">{on && <Icon name="check" size={15} stroke={3} />}</span>
             </button>
           );
         })}

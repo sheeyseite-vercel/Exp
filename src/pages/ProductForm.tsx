@@ -239,11 +239,16 @@ export default function ProductForm() {
             </>
           ) : (
             <span className="photo-add">
-              <Icon name="camera" size={24} />
+              {cutting ? <span className="cut-spin" aria-hidden="true" /> : <Icon name="camera" size={24} />}
               {cutting ? t('photo_cutting') : t('photo_add')}
             </span>
           )}
-          {cutting && preview && <span className="photo-busy">{t('photo_cutting')}</span>}
+          {cutting && preview && (
+            <span className="photo-busy">
+              <span className="cut-spin" aria-hidden="true" />
+              {t('photo_cutting')}
+            </span>
+          )}
         </div>
         <label className="card field field-grow" htmlFor="name">
           <span className="field-label">{t('name_label')}</span>

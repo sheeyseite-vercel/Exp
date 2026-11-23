@@ -93,9 +93,6 @@ export default function Details() {
           <h1>{t('details_title')}</h1>
         </div>
         <div className="head-actions">
-          <Link to={`/product/${product.id}/edit`} className="round-btn" aria-label={t('edit')}>
-            <Icon name="pencil" size={20} />
-          </Link>
           <button
             type="button"
             className="round-btn round-btn-danger"
