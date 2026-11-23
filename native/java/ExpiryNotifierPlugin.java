@@ -100,37 +100,12 @@ public class ExpiryNotifierPlugin extends Plugin {
             }
             SubjectSegmenterOptions options = new SubjectSegmenterOptions.Builder()
                     .enableForegroundBitmap()
-                    .enableMultipleSubjects(new SubjectSegmenterOptions.SubjectResultOptions.Builder().enableSubjectBitmap().build())
                     .build();
             SubjectSegmenter segmenter = SubjectSegmentation.getClient(options);
             segmenter.process(InputImage.fromBitmap(bmp, 0))
                     .addOnSuccessListener(WORKER, result -> {
                         try {
                             Bitmap fg = result.getForegroundBitmap();
-                            // Prefer the one subject that is big and near the centre (the product), so a hand or the table is dropped.
-                            java.util.List<com.google.mlkit.vision.segmentation.subject.Subject> subjects = result.getSubjects();
-                            if (subjects != null && subjects.size() > 1) {
-                                double best = -1;
-                                com.google.mlkit.vision.segmentation.subject.Subject pick = null;
-                                double cx = bmp.getWidth() / 2.0;
-                                double cy = bmp.getHeight() / 2.0;
-                                for (com.google.mlkit.vision.segmentation.subject.Subject sj : subjects) {
-                                    if (sj.getBitmap() == null) continue;
-                                    double mx = sj.getStartX() + sj.getWidth() / 2.0 - cx;
-                                    double my = sj.getStartY() + sj.getHeight() / 2.0 - cy;
-                                    double dist = Math.sqrt(mx * mx + my * my) / Math.max(bmp.getWidth(), bmp.getHeight());
-                                    double score = ((double) sj.getWidth() * sj.getHeight()) * (1.0 - Math.min(0.9, dist * 1.6));
-                                    if (score > best) {
-                                        best = score;
-                                        pick = sj;
-                                    }
-                                }
-                                if (pick != null) {
-                                    Bitmap canvasBmp = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), Bitmap.Config.ARGB_8888);
-                                    new android.graphics.Canvas(canvasBmp).drawBitmap(pick.getBitmap(), pick.getStartX(), pick.getStartY(), null);
-                                    fg = canvasBmp;
-                                }
-                            }
                             if (fg == null) {
                                 call.reject("no subject");
                                 return;
