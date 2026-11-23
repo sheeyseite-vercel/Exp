@@ -123,6 +123,8 @@ const ar = {
   bc_taken: 'هذا الباركود مستعمل لمنتج آخر.',
   bc_unknown: 'الباركود {code} غير موجود.',
   bc_link: 'إضافته لمنتج موجود',
+  calc_title: 'آلة حاسبة',
+  calc_use: 'استعمال {v}',
   cat_other: 'أخرى',
 
   notif_today: '{name}: تنتهي صلاحيته اليوم.',
@@ -565,6 +567,8 @@ const fr: Dict = {
   bc_taken: 'Ce code-barres appartient à un autre produit.',
   bc_unknown: 'Code-barres {code} introuvable.',
   bc_link: 'L’ajouter à un produit existant',
+  calc_title: 'Calculatrice',
+  calc_use: 'Utiliser {v}',
   cat_other: 'Autres',
 
   notif_today: '{name} : expire aujourd’hui.',
@@ -1005,6 +1009,8 @@ const en: Dict = {
   bc_taken: 'This barcode belongs to another product.',
   bc_unknown: 'Barcode {code} not found.',
   bc_link: 'Add it to an existing product',
+  calc_title: 'Calculator',
+  calc_use: 'Use {v}',
   cat_other: 'Other',
 
   notif_today: '{name}: expires today.',

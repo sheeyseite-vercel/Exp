@@ -33,6 +33,8 @@ export type IconName =
   | 'cart'
   | 'download'
   | 'moon'
+  | 'sun'
+  | 'calculator'
   | 'store'
   | 'receipt'
   | 'lock'
@@ -76,6 +78,18 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 4v11" />
       <path d="m7.5 11 4.5 4.5 4.5-4.5" />
       <path d="M5 19h14" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4" />
+    </>
+  ),
+  calculator: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="3" />
+      <path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" />
     </>
   ),
   moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,

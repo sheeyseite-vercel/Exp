@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Calculator } from '../components/Calculator';
 import { Icon } from '../components/Icon';
 import { DateEntry } from '../components/DateEntry';
 import { BackButton, ErrorBanner } from '../components/ui';
@@ -76,6 +77,7 @@ export default function ShopInvoice() {
   const [price, setPrice] = useState('');
   const [known, setKnown] = useState<ShopProduct | null>(null);
   const [unknownCode, setUnknownCode] = useState<string | null>(null);
+  const [calcOpen, setCalcOpen] = useState(false);
   const [linking, setLinking] = useState(false);
   const [linkQuery, setLinkQuery] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
@@ -357,15 +359,20 @@ export default function ShopInvoice() {
           </label>
           <label className="field">
             <span className="field-label">{t('inv_price')}</span>
-            <input
-              ref={priceRef}
-              type="text"
-              inputMode="decimal"
-              enterKeyHint="done"
-              placeholder="0.00"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
+            <span className="price-calc">
+              <input
+                ref={priceRef}
+                type="text"
+                inputMode="decimal"
+                enterKeyHint="done"
+                placeholder="0.00"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+              <button type="button" className="calc-open" aria-label={t('calc_title')} onClick={() => setCalcOpen(true)}>
+                <Icon name="calculator" size={20} />
+              </button>
+            </span>
           </label>
         </div>
         {formError && (
@@ -379,6 +386,17 @@ export default function ShopInvoice() {
         </button>
         <span className="muted small">{t('inv_hint')}</span>
       </form>
+
+      {calcOpen && (
+        <Calculator
+          onClose={() => setCalcOpen(false)}
+          onUse={(money) => {
+            setPrice(money);
+            setCalcOpen(false);
+            window.setTimeout(() => priceRef.current?.focus(), 0);
+          }}
+        />
+      )}
 
       {linking && unknownCode && (
         <div className="sheet-backdrop" onClick={() => setLinking(false)}>
