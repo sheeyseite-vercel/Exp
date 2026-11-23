@@ -127,6 +127,13 @@ export default function ShopPrices() {
     setQuery('');
   }
 
+  const editId = params.get('edit');
+  useEffect(() => {
+    if (!editId || !loaded) return;
+    const found = products.find((p) => p.id === editId);
+    if (found) open(found, true);
+  }, [editId, loaded]);
+
   function close() {
     setSelected(null);
     setPhoto(null);

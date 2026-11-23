@@ -126,6 +126,7 @@ const ar = {
   calc_title: 'آلة حاسبة',
   calc_use: 'استعمال {v}',
   rec_title_opt: 'عنوان (اختياري)',
+  cat_search_ph: 'ابحث عن منتج بالاسم أو الباركود',
   cat_other: 'أخرى',
 
   notif_today: '{name}: تنتهي صلاحيته اليوم.',
@@ -571,6 +572,7 @@ const fr: Dict = {
   calc_title: 'Calculatrice',
   calc_use: 'Utiliser {v}',
   rec_title_opt: 'Titre (facultatif)',
+  cat_search_ph: 'Chercher un produit (nom ou code-barres)',
   cat_other: 'Autres',
 
   notif_today: '{name} : expire aujourd’hui.',
@@ -1014,6 +1016,7 @@ const en: Dict = {
   calc_title: 'Calculator',
   calc_use: 'Use {v}',
   rec_title_opt: 'Title (optional)',
+  cat_search_ph: 'Search product by name or barcode',
   cat_other: 'Other',
 
   notif_today: '{name}: expires today.',

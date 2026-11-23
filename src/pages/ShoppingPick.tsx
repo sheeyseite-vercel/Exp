@@ -11,6 +11,7 @@ import { PhotoPick } from '../components/PhotoPick';
 import { PhotoTile } from '../components/PhotoTile';
 import { BackButton, ErrorBanner } from '../components/ui';
 import { qtyLabel, useCatalog } from '../lib/catalog';
+import { useShopProducts } from '../lib/shop';
 import { t } from '../lib/i18n';
 import { supabase } from '../lib/supabase';
 import type { CatProduct, Unit } from '../lib/types';
@@ -20,6 +21,8 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
   const { cat } = useParams();
   const navigate = useNavigate();
   const { categories, products, loaded, error, addCategory, setCategoryPhoto, deleteCategory, addProduct, deleteProduct } = useCatalog();
+  const { products: shopProducts } = useShopProducts();
+  const [search, setSearch] = useState('');
   const [edit, setEdit] = useState(manage);
   const [selected, setSelected] = useState<CatProduct | null>(null);
   const [unit, setUnit] = useState<Unit>('box');
@@ -93,6 +96,34 @@ export default function ShoppingPick({ manage = false }: { manage?: boolean }) {
           {toggle}
         </header>
         <ErrorBanner message={error} />
+
+        {manage && (
+          <div className="stack-xs">
+            <input
+              type="search"
+              value={search}
+              placeholder={t('cat_search_ph')}
+              aria-label={t('cat_search_ph')}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search.trim() &&
+              shopProducts
+                .filter((p) => {
+                  const q = search.trim().toLowerCase();
+                  return p.name.toLowerCase().includes(q) || (p.barcode ?? '').includes(q);
+                })
+                .slice(0, 8)
+                .map((p) => (
+                  <Link key={p.id} to={`/shop/prices?edit=${p.id}`} className="card inv-card">
+                    <span className="inv-card-main">
+                      <strong>{p.name}</strong>
+                      <span className="muted small">{p.barcode ?? ' '}</span>
+                    </span>
+                    <Icon name="pencil" size={18} />
+                  </Link>
+                ))}
+          </div>
+        )}
 
         {editing && (
           <>
