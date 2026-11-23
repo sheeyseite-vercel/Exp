@@ -4730,3 +4730,58 @@ html[dir='ltr'] .rtl-flip {
   background: #1e7fe0;
   color: #fff;
 }
+
+/* invoice cards */
+.inv-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.inv-card-ico {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--blue, #3b6cf6) 12%, transparent);
+  color: var(--blue, #3b6cf6);
+}
+.inv-card-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.95rem;
+}
+.inv-card-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  font-size: 0.95rem;
+}
+.inv-card-n {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--soft, rgba(120, 130, 150, 0.14));
+  color: var(--muted, #6b7280);
+  font-size: 0.72rem;
+}
+.inv-line-btn {
+  width: 100%;
+  cursor: pointer;
+}
+.inv-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.sheet-backdrop:has(.calc) {
+  align-items: center;
+  justify-content: center;
+}

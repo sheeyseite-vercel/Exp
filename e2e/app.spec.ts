@@ -93,9 +93,14 @@ async function setup(page: Page, rows: Row[], settings: Row | null = null) {
       return json(route, row, 201);
     }
     if (method === 'DELETE') {
-      const id = new URL(req.url()).searchParams.get('id')?.replace('eq.', '');
-      const index = rows.findIndex((r) => r.id === id);
-      if (index >= 0) rows.splice(index, 1);
+      const q = new URL(req.url()).searchParams;
+      const id = q.get('id')?.replace('eq.', '');
+      const name = q.get('name')?.replace('ilike.', '').toLowerCase();
+      const code = q.get('barcode')?.replace('eq.', '');
+      for (let i = rows.length - 1; i >= 0; i -= 1) {
+        const r = rows[i];
+        if ((id && r.id === id) || (name && String(r.name).toLowerCase() === name) || (code && r.barcode === code)) rows.splice(i, 1);
+      }
       return route.fulfill({ status: 204 });
     }
     if (method === 'PATCH') {
@@ -106,6 +111,9 @@ async function setup(page: Page, rows: Row[], settings: Row | null = null) {
     }
     return route.continue();
   });
+  await page.route(/\/rest\/v1\/(shop_products|catalog_products|shopping_items)/, (route) =>
+    route.request().method() === 'GET' ? json(route, []) : route.fulfill({ status: 204 }),
+  );
   await page.route('**/storage/v1/**', (route) => json(route, { error: 'not found' }, 404));
 }
 
@@ -213,8 +221,10 @@ test('delete a product', async ({ page }) => {
   const rows = seed();
   await setup(page, rows);
   await page.goto('/#/product/a2');
-  await page.getByRole('button', { name: 'حذف' }).click();
-  await page.getByRole('alertdialog').getByRole('button', { name: 'حذف' }).click();
+  await page.getByRole('button', { name: 'حذف' }).first().click();
+  const sheet = page.getByRole('alertdialog');
+  await sheet.getByRole('button', { name: 'حذف نهائي' }).click();
+  await sheet.getByRole('button', { name: 'تأكيد' }).click();
   await expect(page).toHaveURL(/#\/products/);
   expect(rows.some((r) => r.id === 'a2')).toBe(false);
 });

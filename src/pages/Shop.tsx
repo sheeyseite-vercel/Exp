@@ -66,15 +66,18 @@ export default function Shop() {
         <h2 className="section-title">{t('shop_recent')}</h2>
         {loaded && invoices.length === 0 && <div className="card empty muted">{t('shop_no_invoices')}</div>}
         {invoices.map((inv) => (
-          <Link key={inv.id} to={`/shop/invoice/${inv.id}`} className="card inv-row">
-            <span className="inv-row-main">
-              <strong>{inv.supplier || dayText(inv.invoice_date)}</strong>
-              <span className="muted small">
-                {inv.supplier ? <>{dayText(inv.invoice_date)} · </> : null}
-                {t('inv_items_n', { n: inv.lines })}
-              </span>
+          <Link key={inv.id} to={`/shop/invoice/${inv.id}`} className="card inv-card">
+            <span className="inv-card-ico">
+              <Icon name="receipt" size={20} />
             </span>
-            <strong className="inv-row-total">{formatMoneyCur(inv.total_cents)}</strong>
+            <span className="inv-card-main">
+              <strong>{inv.supplier || dayText(inv.invoice_date)}</strong>
+              <span className="muted small">{inv.supplier ? dayText(inv.invoice_date) : ' '}</span>
+            </span>
+            <span className="inv-card-end">
+              <strong>{formatMoneyCur(inv.total_cents)}</strong>
+              <span className="inv-card-n">{t('inv_items_n', { n: inv.lines })}</span>
+            </span>
           </Link>
         ))}
       </section>
