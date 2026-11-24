@@ -95,12 +95,10 @@ export default function ShopInvoiceView() {
               <span>{t('inv_computed')}</span>
               <strong className="inv-sum-total">{formatMoneyCur(inv.total_cents)}</strong>
             </div>
-            {inv.printed_cents !== null && (
-              <div className="inv-sum-row">
-                <span>{t('inv_printed_short')}</span>
-                <strong>{formatMoneyCur(inv.printed_cents)}</strong>
-              </div>
-            )}
+            <div className="inv-sum-row">
+              <span>{t('inv_count_label')}</span>
+              <strong>{data.lines.length}</strong>
+            </div>
             {diff &&
               (diff.state === 'match' ? (
                 <span className="inv-diff inv-diff-ok">

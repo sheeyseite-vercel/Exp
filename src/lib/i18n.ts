@@ -133,6 +133,7 @@ const ar = {
   inv_photo_done: 'قُرئ {n} سطر. راجعها قبل الحفظ.',
   inv_photo_none: 'تعذّرت قراءة السطور. صوّر الفاتورة مستقيمة وبإضاءة جيدة.',
   inv_item_n: 'منتج {n}',
+  inv_count_label: 'عدد المنتجات',
   cat_other: 'أخرى',
 
   notif_today: '{name}: تنتهي صلاحيته اليوم.',
@@ -585,6 +586,7 @@ const fr: Dict = {
   inv_photo_done: '{n} lignes lues. Vérifiez avant d’enregistrer.',
   inv_photo_none: 'Lecture impossible. Photographiez la facture bien droite et éclairée.',
   inv_item_n: 'Article {n}',
+  inv_count_label: 'Nombre de produits',
   cat_other: 'Autres',
 
   notif_today: '{name} : expire aujourd’hui.',
@@ -1035,6 +1037,7 @@ const en: Dict = {
   inv_photo_done: '{n} lines read. Check them before saving.',
   inv_photo_none: 'Could not read any lines. Photograph the invoice straight and well lit.',
   inv_item_n: 'Item {n}',
+  inv_count_label: 'Number of products',
   cat_other: 'Other',
 
   notif_today: '{name}: expires today.',
