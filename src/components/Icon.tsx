@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 export type IconName =
   | 'home'
+  | 'backspace'
   | 'cube'
   | 'plus'
   | 'minus'
@@ -161,6 +162,7 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   trash: <path d="M5 7h14M9.5 7V4.5h5V7M7 7l.8 12.5h8.4L17 7" />,
+  backspace: <path d="M9.2 5.5h9.3A1.5 1.5 0 0 1 20 7v10a1.5 1.5 0 0 1-1.5 1.5H9.2L3.5 12zM11.8 9.6l4.4 4.8M16.2 9.6l-4.4 4.8" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   bolt: <path d="M13 3 6 13.5h5L10 21l7-10.5h-5z" />,
   droplet: <path d="M12 3.5s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0c0-4 5.5-10 5.5-10z" />,

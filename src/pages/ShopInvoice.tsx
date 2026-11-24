@@ -18,6 +18,8 @@ import {
   reconcile,
 } from '../lib/money';
 import { scanBarcodeText } from '../lib/scanner';
+import { readInvoiceFromPhoto } from '../lib/ocr';
+import { PhotoPick } from '../components/PhotoPick';
 import { lookupBarcode } from '../lib/openfoodfacts';
 import { addAlias, errText, findProductByBarcode, loadInvoice, saveInvoice, updateInvoice, useShopProducts, type ShopProduct } from '../lib/shop';
 import { todayISO } from './Shop';
@@ -78,6 +80,8 @@ export default function ShopInvoice() {
   const [known, setKnown] = useState<ShopProduct | null>(null);
   const [unknownCode, setUnknownCode] = useState<string | null>(null);
   const [calcOpen, setCalcOpen] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [readNote, setReadNote] = useState<string | null>(null);
   const [linking, setLinking] = useState(false);
   const [linkQuery, setLinkQuery] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
@@ -242,6 +246,37 @@ export default function ShopInvoice() {
     }
   }
 
+  async function readPhoto(file: Blob | null) {
+    if (!file) return;
+    setReading(true);
+    setReadNote(null);
+    setError(null);
+    try {
+      const res = await readInvoiceFromPhoto(file);
+      if (res.status === 'unsupported') setError(t('scan_web_only'));
+      else if (res.status === 'none') setReadNote(t('inv_photo_none'));
+      else {
+        const inv = res.invoice;
+        setLines((prev) => [
+          ...prev,
+          ...inv.lines.map((l, i) => ({
+            key: crypto.randomUUID(),
+            barcode: l.barcode,
+            name: l.name || t('inv_item_n', { n: prev.length + i + 1 }),
+            qtyMilli: l.qtyMilli,
+            unitCents: l.unitCents,
+          })),
+        ]);
+        if (!supplier.trim() && inv.supplier) setSupplier(inv.supplier);
+        if (!printed.trim() && inv.printedCents !== null) setPrinted(centsToInput(inv.printedCents));
+        if (inv.date) setDate(inv.date);
+        setReadNote(t('inv_photo_done', { n: inv.lines.length }));
+      }
+    } finally {
+      setReading(false);
+    }
+  }
+
   function clearDraft() {
     setSupplier('');
     setPrinted('');
@@ -256,6 +291,15 @@ export default function ShopInvoice() {
         <h1>{editing ? t('inv_edit_title') : t('inv_new')}</h1>
       </header>
       <ErrorBanner message={error} />
+
+      <div className="card inv-photo">
+        <span className="inv-photo-t">
+          <Icon name="camera" size={20} />
+          <strong>{reading ? t('inv_photo_reading') : t('inv_photo_t')}</strong>
+        </span>
+        <PhotoPick file={null} onFile={(f) => void readPhoto(f)} />
+        {readNote && <span className="muted small">{readNote}</span>}
+      </div>
 
       <div className="card inv-head">
         <label className="field">

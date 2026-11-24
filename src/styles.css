@@ -2325,8 +2325,8 @@ html[dir='ltr'] .rtl-flip {
   border: 1px solid var(--line);
 }
 .logo-glyph {
-  width: 62%;
-  aspect-ratio: 1676 / 1455;
+  width: 44%;
+  aspect-ratio: 318 / 388;
   background: #111;
   -webkit-mask: url('./assets/logo-mask.png') center / contain no-repeat;
   mask: url('./assets/logo-mask.png') center / contain no-repeat;
@@ -5272,4 +5272,35 @@ html[dir='ltr'] .rtl-flip {
 .hm-card.hm-sun {
   background: linear-gradient(145deg, #f0654a, #ff9a7e);
   box-shadow: 0 10px 22px rgba(240, 101, 74, 0.3);
+}
+
+/* calculator: light and instant */
+.calc,
+.calc * {
+  transition: none !important;
+  backdrop-filter: none !important;
+}
+.ck {
+  box-shadow: none !important;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ck:active {
+  filter: brightness(0.92);
+}
+
+.inv-photo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 20px;
+}
+.inv-photo-t {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+  font-size: 14px;
 }

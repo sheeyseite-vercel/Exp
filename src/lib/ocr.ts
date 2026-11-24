@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { ExpiryNotifier } from './expiryNotifier';
 import { findExpiryDate } from './ocrDate';
+import { parseInvoice, type ParsedInvoice } from './ocrInvoice';
 
 export type OcrResult = { status: 'found'; iso: string } | { status: 'none' } | { status: 'unsupported' };
 
@@ -112,6 +113,31 @@ export async function readDateFromPhoto(photo: Blob): Promise<OcrResult> {
       bitmap.close();
     }
     return { status: 'none' };
+  } catch {
+    return { status: 'none' };
+  }
+}
+
+export type InvoiceRead = { status: 'ok'; invoice: ParsedInvoice } | { status: 'none' } | { status: 'unsupported' };
+
+/** Reads a photographed purchase invoice: rows, quantities, prices, totals. Tries upright, then sideways. */
+export async function readInvoiceFromPhoto(photo: Blob): Promise<InvoiceRead> {
+  if (!Capacitor.isNativePlatform()) return { status: 'unsupported' };
+  try {
+    const bitmap = await createImageBitmap(photo);
+    try {
+      let best: ParsedInvoice | null = null;
+      for (const rotate of [0, 90, 270] as const) {
+        const image = await toBase64(await render(bitmap, { rotate, enhance: false }));
+        const { boxes } = await ExpiryNotifier.recognizeBoxes({ image });
+        const invoice = parseInvoice(boxes);
+        if (!best || invoice.lines.length > best.lines.length) best = invoice;
+        if (best.lines.length >= 2) break;
+      }
+      return best && best.lines.length > 0 ? { status: 'ok', invoice: best } : { status: 'none' };
+    } finally {
+      bitmap.close();
+    }
   } catch {
     return { status: 'none' };
   }

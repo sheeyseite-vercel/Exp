@@ -53,8 +53,23 @@ export function Calculator({ onClose, onUse }: { onClose: () => void; onUse: (mo
   }
 
   const key = (k: string, cls = '') => (
-    <button key={k} type="button" className={`ck ${cls}`} onClick={() => press(k)} aria-label={k === '⌫' ? t('delete') : k}>
-      {k === '⌫' ? <Icon name="close" size={18} stroke={2.2} /> : k}
+    <button
+      key={k}
+      type="button"
+      className={`ck ${cls}`}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        press(k);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          press(k);
+        }
+      }}
+      aria-label={k === '⌫' ? t('delete') : k}
+    >
+      {k === '⌫' ? <Icon name="backspace" size={22} stroke={1.9} /> : k}
     </button>
   );
 

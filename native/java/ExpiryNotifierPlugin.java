@@ -17,6 +17,7 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmentation;
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmenter;
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmenterOptions;
+import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
@@ -80,6 +81,52 @@ public class ExpiryNotifierPlugin extends Plugin {
                     .addOnFailureListener(e -> call.reject(e.getMessage()));
         } catch (Exception e) {
             call.reject(e.getMessage());
+        }
+    }
+
+    /** Text lines with their position, so table rows (name, quantity, price, total) can be rebuilt. */
+    @PluginMethod
+    public void recognizeBoxes(PluginCall call) {
+        String image = call.getString("image");
+        if (image == null) {
+            call.reject("image required");
+            return;
+        }
+        try {
+            byte[] bytes = Base64.decode(image, Base64.DEFAULT);
+            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (bmp == null) {
+                call.reject("bad image");
+                return;
+            }
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                    .process(InputImage.fromBitmap(bmp, 0))
+                    .addOnSuccessListener(WORKER, result -> {
+                        try {
+                            JSArray boxes = new JSArray();
+                            for (Text.TextBlock block : result.getTextBlocks()) {
+                                for (Text.Line line : block.getLines()) {
+                                    android.graphics.Rect r = line.getBoundingBox();
+                                    if (r == null) continue;
+                                    JSObject o = new JSObject();
+                                    o.put("text", line.getText());
+                                    o.put("left", r.left);
+                                    o.put("top", r.top);
+                                    o.put("right", r.right);
+                                    o.put("bottom", r.bottom);
+                                    boxes.put(o);
+                                }
+                            }
+                            JSObject out = new JSObject();
+                            out.put("boxes", boxes);
+                            call.resolve(out);
+                        } catch (Throwable e) {
+                            call.reject(String.valueOf(e.getMessage()));
+                        }
+                    })
+                    .addOnFailureListener(e -> call.reject(e.getMessage()));
+        } catch (Throwable e) {
+            call.reject(String.valueOf(e.getMessage()));
         }
     }
 

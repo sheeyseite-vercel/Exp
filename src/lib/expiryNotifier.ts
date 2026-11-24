@@ -22,6 +22,8 @@ export interface ExpiryNotifierPlugin {
   takeActions(): Promise<{ actions: { productId: string; action: 'used' | 'discarded' }[] }>;
   /** On-device text recognition (ML Kit) for a JPEG given as base64. */
   recognizeText(options: { image: string }): Promise<{ text: string }>;
+  /** Text lines with their position on the picture (ML Kit), for reading tables such as invoices. */
+  recognizeBoxes(options: { image: string }): Promise<{ boxes: { text: string; left: number; top: number; right: number; bottom: number }[] }>;
   /** On-device subject cut-out (ML Kit): a PNG with a transparent background, as base64. */
   removeBackground(options: { image: string }): Promise<{ image: string }>;
 }
